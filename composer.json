@@ -1,0 +1,49 @@
+{
+    "name": "fruitstudios/listit",
+    "description": "Follow, Favourite, Bookmark, Like & Subscribe.",
+    "type": "craft-plugin",
+    "version": "1.0.13",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "listit",
+        "follow",
+        "favourite",
+        "bookmark",
+        "like",
+        "subscribe"
+    ],
+    "support": {
+        "docs": "https://github.com/fruitstudios/craft-listit/blob/master/README.md",
+        "issues": "https://github.com/fruitstudios/craft-listit/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Fruit Studios",
+            "homepage": "https://fruitstudios.co.uk"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0-RC1"
+    },
+    "autoload": {
+        "psr-4": {
+          "fruitstudios\\listit\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Listit",
+        "handle": "listit",
+        "hasCpSettings": false,
+        "hasCpSection": false,
+        "changelogUrl": "https://raw.githubusercontent.com/fruitstudios/craft-listit/master/CHANGELOG.md",
+        "components": {
+            "listService": "fruitstudios\\listit\\services\\ListService",
+            "subscriptionService": "fruitstudios\\listit\\services\\SubscriptionService"
+        },
+        "class": "fruitstudios\\listit\\Listit"
+    }
+}
