@@ -4,4 +4,4 @@ Follow, Favourite, Bookmark, Like & Subscribe users to lists.
 
 Docs coming soon...
 
-Brought to you by [Fruit Studios](https://fruitstudios.co.uk)
+Brought to you by Pressed Digital

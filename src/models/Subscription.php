@@ -1,7 +1,7 @@
 <?php
-namespace fruitstudios\listit\models;
+namespace presseddigital\listit\models;
 
-use fruitstudios\listit\Listit;
+use presseddigital\listit\Listit;
 
 use Craft;
 use craft\base\Model;
@@ -18,7 +18,7 @@ class Subscription extends Model
     // =========================================================================
 
     public $id;
-    public $ownerId;
+    public $subscriberId;
     public $elementId;
     public $list;
     public $siteId;
@@ -32,9 +32,9 @@ class Subscription extends Model
     public function rules()
     {
         return [
-            [['ownerId', 'elementId', 'siteId'], 'integer'],
+            [['subscriberId', 'elementId', 'siteId'], 'integer'],
             [['list'], 'string'],
-            [['ownerId', 'elementId', 'siteId', 'list'], 'required'],
+            [['subscriberId', 'elementId', 'siteId', 'list'], 'required'],
         ];
     }
 
@@ -42,7 +42,7 @@ class Subscription extends Model
     {
         if(is_null($this->_owner))
         {
-            $this->_owner = Craft::$app->getUsers()->getUserById($this->ownerId);
+            $this->_owner = Craft::$app->getUsers()->getUserById($this->subscriberId);
         }
         return $this->_owner;
     }

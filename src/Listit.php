@@ -1,8 +1,8 @@
 <?php
-namespace fruitstudios\listit;
+namespace presseddigital\listit;
 
-use fruitstudios\listit\services\Lists;
-use fruitstudios\listit\services\Subscriptions;
+use presseddigital\listit\services\Lists;
+use presseddigital\listit\services\Subscriptions;
 
 use Craft;
 use craft\base\Plugin;

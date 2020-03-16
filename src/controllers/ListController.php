@@ -1,10 +1,10 @@
 <?php
-namespace fruitstudios\listit\controllers;
+namespace presseddigital\listit\controllers;
 
-use fruitstudios\listit\Listit;
-use fruitstudios\listit\models\Subscription;
+use presseddigital\listit\Listit;
+use presseddigital\listit\models\Subscription;
 
-use fruitstudios\listit\services\Lists;
+use presseddigital\listit\services\Lists;
 
 use Craft;
 use craft\web\Controller;
@@ -46,7 +46,7 @@ class ListController extends Controller
 
         // Create Subscription
         $subscription = Listit::$plugin->subscriptions->createSubscription([
-            'ownerId' => $owner->id ?? null,
+            'subscriberId' => $owner->id ?? null,
             'elementId' => $element->id ?? null,
             'list' => $list,
             'siteId' => $site->id ?? null,
@@ -72,7 +72,7 @@ class ListController extends Controller
 
         // Get Subscription
         $subscription = Listit::$plugin->subscriptions->getSubscription([
-            'ownerId' => $owner->id ?? null,
+            'subscriberId' => $owner->id ?? null,
             'elementId' => $element->id ?? null,
             'list' => $list,
             'siteId' => $site->id ?? null
@@ -224,8 +224,8 @@ class ListController extends Controller
             return $this->_owner;
         }
 
-        $ownerId = Craft::$app->getRequest()->getParam('ownerId', false);
-        return $ownerId ? Craft::$app->getUsers()->getUserById($ownerId) : Craft::$app->getUser()->getIdentity();
+        $subscriberId = Craft::$app->getRequest()->getParam('subscriberId', false);
+        return $subscriberId ? Craft::$app->getUsers()->getUserById($subscriberId) : Craft::$app->getUser()->getIdentity();
     }
 
     private function _getElement()
@@ -275,7 +275,7 @@ class ListController extends Controller
             {
                 $result['subscription'] = [
                     'id' => $subscription->id,
-                    'ownerId' => $subscription->ownerId,
+                    'subscriberId' => $subscription->subscriberId,
                     'elementId' => $subscription->elementId,
                     'list' => $subscription->list,
                     'siteId' => $subscription->siteId

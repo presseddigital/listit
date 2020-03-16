@@ -1,26 +1,12 @@
 <?php
-/**
- * listit plugin for Craft CMS 3.x
- *
- * Follow, Favourite, Bookmark, Like & Subscribe.
- *
- * @link      https://fruitstudios.co.uk
- * @copyright Copyright (c) 2018 Fruit Studios
- */
+namespace presseddigital\listit\migrations;
 
-namespace fruitstudios\listit\migrations;
-
-use fruitstudios\listit\Listit;
+use presseddigital\listit\Listit;
 
 use Craft;
 use craft\config\DbConfig;
 use craft\db\Migration;
 
-/**
- * @author    Fruit Studios
- * @package   Listit
- * @since     1.0.0
- */
 class Install extends Migration
 {
     // Public Properties
@@ -69,10 +55,11 @@ class Install extends Migration
                 '{{%listit}}',
                 [
                     'id' => $this->primaryKey(),
-                    'ownerId' => $this->integer()->notNull(),
-                    'elementId' => $this->integer()->notNull(),
-                    'list' => $this->string(64)->notNull()->defaultValue(''),
+                    'subscriberId' => $this->integer()->notNull(),
                     'siteId' => $this->integer()->notNull(),
+                    'list' => $this->string(64)->notNull()->defaultValue(''),
+                    'elementId' => $this->integer(),
+                    'metadata' => $this->text(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
@@ -91,22 +78,14 @@ class Install extends Migration
             'list',
             false
         );
-
-        // Additional commands depending on the db driver
-        switch ($this->driver) {
-            case DbConfig::DRIVER_MYSQL:
-                break;
-            case DbConfig::DRIVER_PGSQL:
-                break;
-        }
     }
 
     protected function addForeignKeys()
     {
         $this->addForeignKey(
-            $this->db->getForeignKeyName('{{%listit}}', 'ownerId'),
+            $this->db->getForeignKeyName('{{%listit}}', 'subscriberId'),
             '{{%listit}}',
-            'ownerId',
+            'subscriberId',
             '{{%users}}',
             'id',
             'CASCADE',

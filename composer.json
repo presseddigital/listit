@@ -1,8 +1,8 @@
 {
-    "name": "fruitstudios/listit",
+    "name": "presseddigital/listit",
     "description": "Follow, Favourite, Bookmark, Like & Subscribe.",
     "type": "craft-plugin",
-    "version": "1.0.13",
+    "version": "1.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -13,17 +13,18 @@
         "favourite",
         "bookmark",
         "like",
-        "subscribe"
+        "subscribe",
+        "lists"
     ],
     "support": {
-        "docs": "https://github.com/fruitstudios/craft-listit/blob/master/README.md",
-        "issues": "https://github.com/fruitstudios/craft-listit/issues"
+        "docs": "https://github.com/presseddigital/listit/blob/master/README.md",
+        "issues": "https://github.com/presseddigital/listit/issues"
     },
     "license": "MIT",
     "authors": [
         {
-            "name": "Fruit Studios",
-            "homepage": "https://fruitstudios.co.uk"
+            "name": "Pressed Digital",
+            "homepage": "https://presseddigital.co.uk"
         }
     ],
     "require": {
@@ -31,19 +32,19 @@
     },
     "autoload": {
         "psr-4": {
-          "fruitstudios\\listit\\": "src/"
+          "presseddigital\\listit\\": "src/"
         }
     },
     "extra": {
         "name": "Listit",
         "handle": "listit",
         "hasCpSettings": false,
-        "hasCpSection": false,
-        "changelogUrl": "https://raw.githubusercontent.com/fruitstudios/craft-listit/master/CHANGELOG.md",
+        "hasCpSection": true,
+        "changelogUrl": "https://raw.githubusercontent.com/presseddigital/listit/master/CHANGELOG.md",
         "components": {
-            "listService": "fruitstudios\\listit\\services\\ListService",
-            "subscriptionService": "fruitstudios\\listit\\services\\SubscriptionService"
+            "lists": "presseddigital\\listit\\services\\Lists",
+            "subscriptions": "presseddigital\\listit\\services\\Subscriptions"
         },
-        "class": "fruitstudios\\listit\\Listit"
+        "class": "presseddigital\\listit\\Listit"
     }
 }

@@ -1,8 +1,8 @@
 <?php
-namespace fruitstudios\listit\services;
+namespace presseddigital\listit\services;
 
-use fruitstudios\listit\Listit;
-use fruitstudios\listit\models\Subscription;
+use presseddigital\listit\Listit;
+use presseddigital\listit\models\Subscription;
 
 use Craft;
 use craft\base\Component;
@@ -49,7 +49,7 @@ class Lists extends Component
 
         $criteria = [
             'list' => $list,
-            'ownerId' => $owner->id,
+            'subscriberId' => $owner->id,
             'elementId' => $element->id,
         ];
 
@@ -68,7 +68,7 @@ class Lists extends Component
         }
 
         $criteria = [
-            'ownerId' => $owner->id,
+            'subscriberId' => $owner->id,
             'siteId' => $site->id,
             'list' => $list
         ];
@@ -93,16 +93,16 @@ class Lists extends Component
             'list' => $list
         ];
 
-        return Listit::$plugin->subscriptions->getSubscriptionsColumn($criteria, 'ownerId');
+        return Listit::$plugin->subscriptions->getSubscriptionsColumn($criteria, 'subscriberId');
     }
 
     public function getOwners($params)
     {
-        $ownerIds = $this->getOwnerIds($params);
+        $subscriberIds = $this->getOwnerIds($params);
 
         $query = $this->_getElementQuery(User::class, ($params['criteria'] ?? []));
         return $query
-            ->id($ownerIds)
+            ->id($subscriberIds)
             ->all();
     }
 
@@ -118,7 +118,7 @@ class Lists extends Component
         }
 
         $criteria = [
-            'ownerId' => $owner->id,
+            'subscriberId' => $owner->id,
             'list' => $list,
             'siteId' => $site->id,
         ];
@@ -249,7 +249,7 @@ class Lists extends Component
         // Create Subscription
         $subscription = Listit::$plugin->subscriptions->createSubscription([
             'list' => $list,
-            'ownerId' => $owner->id ?? null,
+            'subscriberId' => $owner->id ?? null,
             'elementId' => $element->id ?? null,
             'siteId' => $site->id ?? null,
         ]);
@@ -273,7 +273,7 @@ class Lists extends Component
         // Subscription
         $subscription = Listit::$plugin->subscriptions->getSubscription([
             'list' => $list,
-            'ownerId' => $owner->id ?? null,
+            'subscriberId' => $owner->id ?? null,
             'elementId' => $element->id ?? null,
             'siteId' => $site->id ?? null,
         ]);
@@ -485,11 +485,11 @@ class Lists extends Component
 
     public function getFollowers($paramsOrUserElement = null)
     {
-        $ownerIds = $this->getFollowerIds($paramsOrUserElement);
+        $subscriberIds = $this->getFollowerIds($paramsOrUserElement);
 
         $query = $this->_getElementQuery(User::class, ($paramsOrUserElement['criteria'] ?? []));
         return $query
-            ->id($ownerIds)
+            ->id($subscriberIds)
             ->all();
     }
 
@@ -580,12 +580,12 @@ class Lists extends Component
 
     public function getIncomingFriendRequests($paramsOrUserElement = null)
     {
-        $ownerIds = $this->getIncomingFriendRequestIds($paramsOrUserElement);
+        $subscriberIds = $this->getIncomingFriendRequestIds($paramsOrUserElement);
         $friendIds = $this->getFriendIds($paramsOrUserElement);
 
         $query = $this->_getElementQuery(User::class, ($paramsOrUserElement['criteria'] ?? []));
         return $query
-            ->id(array_diff($ownerIds, $friendIds))
+            ->id(array_diff($subscriberIds, $friendIds))
             ->all();
     }
 

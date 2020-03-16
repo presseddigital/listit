@@ -1,10 +1,10 @@
 <?php
-namespace fruitstudios\listit\services;
+namespace presseddigital\listit\services;
 
-use fruitstudios\listit\Listit;
-use fruitstudios\listit\models\Subscription;
-use fruitstudios\listit\records\Subscription as SubscriptionRecord;
-use fruitstudios\listit\events\SubscriptionEvent;
+use presseddigital\listit\Listit;
+use presseddigital\listit\models\Subscription;
+use presseddigital\listit\records\Subscription as SubscriptionRecord;
+use presseddigital\listit\events\SubscriptionEvent;
 
 use Craft;
 use craft\base\Component;
@@ -81,7 +81,7 @@ class Subscriptions extends Component
         }
 
         $subscriptionRecord = SubscriptionRecord::findOne([
-            'ownerId' => $subscription->ownerId,
+            'subscriberId' => $subscription->subscriberId,
             'elementId' => $subscription->elementId,
             'list' => $subscription->list,
             'siteId' => $subscription->siteId
@@ -153,7 +153,7 @@ class Subscriptions extends Component
         {
             $config = $subscriptionRecord->toArray([
                 'id',
-                'ownerId',
+                'subscriberId',
                 'elementId',
                 'siteId',
                 'list',

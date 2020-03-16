@@ -1,5 +1,5 @@
 <?php
-namespace fruitstudios\listit\events;
+namespace presseddigital\listit\events;
 
 use craft\base\ElementInterface;
 use yii\base\Event;

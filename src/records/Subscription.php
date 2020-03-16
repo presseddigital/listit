@@ -1,7 +1,7 @@
 <?php
-namespace fruitstudios\listit\records;
+namespace presseddigital\listit\records;
 
-use fruitstudios\listit\Listit;
+use presseddigital\listit\Listit;
 
 use Craft;
 use craft\db\ActiveRecord;
