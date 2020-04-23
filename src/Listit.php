@@ -16,28 +16,15 @@ use yii\base\Event;
 
 class Listit extends Plugin
 {
-
-    // Constants
-    // =========================================================================
-
-    const FOLLOW_LIST_HANDLE = 'follow';
-    const STAR_LIST_HANDLE = 'star';
-    const BOOKMARK_LIST_HANDLE = 'bookmark';
-    const LIKE_LIST_HANDLE = 'like';
-    const FAVOURITE_LIST_HANDLE = 'favourite';
-
-
     // Static Properties
     // =========================================================================
 
     public static $plugin;
 
-
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.1';
-
+    public $schemaVersion = '1.0.0';
 
     // Public Methods
     // =========================================================================
@@ -53,24 +40,7 @@ class Listit extends Plugin
             'lists' => Lists::class,
         ]);
 
-        Event::on(
-            CraftVariable::class,
-            CraftVariable::EVENT_INIT,
-            function (Event $event) {
-                $variable = $event->sender;
-                $variable->set('listit', Lists::class);
-            }
-        );
-
-
-        Craft::info(
-            Craft::t(
-                'listit',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
+        Craft::info(Craft::t('listit', '{name} plugin loaded', ['name' => $this->name] ), __METHOD__);
     }
 
 }

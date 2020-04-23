@@ -2,6 +2,7 @@
 namespace presseddigital\listit\models;
 
 use presseddigital\listit\Listit;
+use presseddigital\listit\db\SubscriptionQuery;
 
 use Craft;
 use craft\base\Model;
@@ -11,7 +12,7 @@ class Subscription extends Model
     // Private Properties
     // =========================================================================
 
-    private $_owner;
+    private $_subscriber;
     private $_element;
 
     // Public Properties
@@ -22,37 +23,63 @@ class Subscription extends Model
     public $elementId;
     public $list;
     public $siteId;
+    public $metadata;
     public $dateCreated;
     public $dateUpdated;
     public $uid;
 
+    // Static Methods
+    // =========================================================================
+
+    public static function find(): SubscriptionQuery
+    {
+        return new SubscriptionQuery();
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['id', 'subscriberId', 'siteId', 'elementId'], 'number', 'integerOnly' => true ];
+        $rules[] = [['id', 'subscriberId', 'siteId', 'list'], 'required'];
+        // $rules[] = [['elementId'], 'validateSubscriberId'];
+        // $rules[] = [['elementId'], 'validateElementId'];
+        return $rules;
+    }
+
     // Public Methods
     // =========================================================================
 
-    public function rules()
-    {
-        return [
-            [['subscriberId', 'elementId', 'siteId'], 'integer'],
-            [['list'], 'string'],
-            [['subscriberId', 'elementId', 'siteId', 'list'], 'required'],
-        ];
-    }
+    // public function validateElementId()
+    // {
+    //     if($this->list && $this->elementId)
+    //     {
+    //         $element = Craft::$app->getElements()->getElementById((int)$this->elementId);
+    //         if(!$element)
+    //         {
+    //             $this->addError('elementId', Craft::t('Element not found'));
+    //             return;
+    //         }
+    //     }
+    // }
 
-    public function getOwner()
+    public function getSubscriber()
     {
-        if(is_null($this->_owner))
+        if($this->_subscriber !== null)
         {
-            $this->_owner = Craft::$app->getUsers()->getUserById($this->subscriberId);
+            return $this->_subscriber;
         }
-        return $this->_owner;
+        return $this->_subscriber = Craft::$app->getUsers()->getUserById($this->subscriberId);
     }
 
     public function getElement()
     {
-        if(is_null($this->_element))
+        if($this->_element !== null)
         {
-            $this->_element = Craft::$app->getElements()->getElementById($this->elementId);
+            return $this->_element;
         }
-        return $this->_element;
+        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId);
     }
 }

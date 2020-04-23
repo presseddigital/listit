@@ -2,6 +2,7 @@
 namespace presseddigital\listit\services;
 
 use presseddigital\listit\Listit;
+use presseddigital\listit\db\Table;
 use presseddigital\listit\models\Subscription;
 use presseddigital\listit\records\Subscription as SubscriptionRecord;
 use presseddigital\listit\events\SubscriptionEvent;
@@ -17,154 +18,126 @@ class Subscriptions extends Component
     // Constants
     // =========================================================================
 
-    const EVENT_ADDED_TO_LIST = 'addedToList';
-    const EVENT_REMOVED_FROM_LIST = 'removedFromList';
+    const EVENT_BEFORE_SAVE_SUBSCRIPTION = 'beforeSaveSubscription';
+    const EVENT_AFTER_SAVE_SUBSCRIPTION = 'afterSaveSubscription';
+    const EVENT_AFTER_DELETE_SUBSCRIPTION = 'afterDeleteSubscription';
 
     // Public Methods
     // =========================================================================
 
-    public function createSubscription($attributes = [])
+    public function getSubscriptionById(int $id, $siteId = null, array $criteria = [])
     {
-        // $subscription = new Subscription();
-        // $subscription->setAttributes($attributes);
-        return $this->_createSubscription($attributes);
+        $query = Subscription::find()
+            ->id($id)
+            ->site($siteId);
+
+        Craft::configure($query, $criteria);
+        return $query->one();
     }
 
-    public function getSubscription(array $criteria = null)
-    {
-        $subscriptionRecord = SubscriptionRecord::findOne($criteria);
-        return $this->_createSubscription($subscriptionRecord);
-    }
+    // Needed?
+    //
+    // public function getSubscriptionsByList(string $list, $siteId = null, array $criteria = [])
+    // {
+    //     $query = Subscription::find()
+    //         ->list($list)
+    //         ->site($siteId);
 
-    public function getSubscriptions(array $criteria = [], array $select = null)
+    //     Craft::configure($query, $criteria);
+    //     return $query->all();
+    // }
+
+    public function saveSubscription(Subscription $subscriptionModel, bool $runValidation = true, $surpressEvents = false)
     {
-        if($select)
+        $isNewSubscription = !$subscriptionModel->id;
+
+        if ($subscriptionModel->id)
         {
-            return (new Query())
-                ->select($select)
-                ->from([SubscriptionRecord::tableName()])
-                ->where($criteria)
-                ->all();
+            $subscriptionRecord = SubscriptionRecord::findOne($subscriptionModel->id);
+            if (!$subscriptionRecord)
+            {
+                throw new InvalidArgumentException('No subscription exists with the ID “{id}”', ['id' => $subscriptionModel->id]);
+            }
         }
         else
         {
-            $subscriptionRecords = SubscriptionRecord::find()
-                ->where($criteria)
-                ->all();
-
-            $subscriptionModels = [];
-            if($subscriptionRecords)
-            {
-                foreach ($subscriptionRecords as $subscriptionRecord)
-                {
-                    $subscriptionModels[] = $this->_createSubscription($subscriptionRecord);
-                }
-            }
-            return $subscriptionModels;
-        }
-    }
-
-    public function getSubscriptionsColumn(array $criteria = [], string $column)
-    {
-        return (new Query())
-            ->select($column)
-            ->from([SubscriptionRecord::tableName()])
-            ->where($criteria)
-            ->column();
-    }
-
-    public function saveSubscription(Subscription $subscription, $surpressEvents = false)
-    {
-        if (!$subscription->validate()) {
-            Craft::info('Subscription not saved due to validation error.', __METHOD__);
-            return false;
+            $subscriptionRecord = new SubscriptionRecord();
         }
 
-        $subscriptionRecord = SubscriptionRecord::findOne([
-            'subscriberId' => $subscription->subscriberId,
-            'elementId' => $subscription->elementId,
-            'list' => $subscription->list,
-            'siteId' => $subscription->siteId
-        ]);
-
-        if($subscriptionRecord) {
-            $subscription = $this->_createSubscription($subscriptionRecord);
-            return true;
-        }
-
-        $subscriptionRecord = new SubscriptionRecord();
-        $subscriptionRecord->setAttributes($subscription->getAttributes(), false);
-        if(!$subscriptionRecord->save(false))
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_BEFORE_SAVE_SUBSCRIPTION))
         {
-            return false;
-        }
-
-        $subscriptionModel = $this->_createSubscription($subscriptionRecord);
-
-        if (!$surpressEvents)
-        {
-            $this->trigger(self::EVENT_ADDED_TO_LIST, new SubscriptionEvent([
-                'subscription' => $subscriptionModel
-            ]));
-        }
-
-        return true;
-    }
-
-    public function deleteSubscription($subscriptionId, $surpressEvents = false)
-    {
-        $subscriptionRecord = SubscriptionRecord::findOne($subscriptionId);
-
-        if($subscriptionRecord) {
-            try {
-
-                $subscriptionModel = $this->_createSubscription($subscriptionRecord);
-                $subscriptionRecord->delete();
-
-                if(!$surpressEvents)
-                {
-                     $this->trigger(self::EVENT_REMOVED_FROM_LIST, new SubscriptionEvent([
-                        'subscription' => $subscriptionModel
-                    ]));
-                }
-
-            } catch (StaleObjectException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-            } catch (\Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-            }
-        }
-
-        return true;
-    }
-
-    // Private Methods
-    // =========================================================================
-
-    private function _createSubscription($config = null)
-    {
-        if (!$config) {
-            return null;
-        }
-
-        if($config instanceof Subscription)
-        {
-            $config = $subscriptionRecord->toArray([
-                'id',
-                'subscriberId',
-                'elementId',
-                'siteId',
-                'list',
-                'dateCreated'
+            $event = new SubscriptionEvent([
+                'subscription' => $subscriptionModel,
+                'isNew' => $isNewSubscription
             ]);
+            $this->trigger(self::EVENT_BEFORE_SAVE_SUBSCRIPTION, $event);
         }
 
-        $subscription = new Subscription($config);
-        return $subscription;
+        if ($runValidation && !$subscriptionModel->validate())
+        {
+            Craft::info('Subscription could not save due to validation error.', __METHOD__);
+            return false;
+        }
+
+        $subscriptionRecord->subscriberId = $subscriptionModel->subscriberId;
+        $subscriptionRecord->elementId = $subscriptionModel->elementId;
+        $subscriptionRecord->list = $subscriptionModel->list;
+        $subscriptionRecord->siteId = $subscriptionModel->siteId;
+        $subscriptionRecord->metadata = $subscriptionModel->metadata;
+
+        if (!$subscriptionRecord->save())
+        {
+            $subscriptionModel->addErrors($subscriptionRecord->getErrors());
+            return false;
+        }
+
+        if ($isNewSubscription)
+        {
+            $subscriptionModel->id = $subscriptionRecord->id;
+        }
+
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_SAVE_SUBSCRIPTION))
+        {
+            $event = new SubscriptionEvent([
+                'subscription' => $subscriptionModel,
+                'isNew' => $isNewSubscription
+            ]);
+            $this->trigger(self::EVENT_AFTER_SAVE_SUBSCRIPTION, $event);
+        }
+
+        return true;
     }
 
+    public function deleteSubscriptionById(int $id, $surpressEvents = false): bool
+    {
+        $subscription = $this->getSubscriptionById($id);
+        if(!$subscription)
+        {
+            return false;
+        }
+        return $this->deleteSubscription($subscription, $surpressEvents);
+    }
 
+    public function deleteSubscription(Subscription $subscription, $surpressEvents = false): bool
+    {
+        $subscriptionRecord = SubscriptionRecord::findOne($subscription->id);
+        if(!$subscriptionRecord)
+        {
+            return false;
+        }
+
+        $result = (bool)$subscriptionRecord->delete();
+
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_DELETE_SUBSCRIPTION))
+        {
+            $event = new SubscriptionEvent([
+                'subscription' => $subscription,
+                'isNew' => false
+            ]);
+            $this->trigger(self::EVENT_AFTER_DELETE_SUBSCRIPTION, $event);
+        }
+
+        return $result;
+    }
 
 }

@@ -12,123 +12,112 @@ use craft\elements\User;
 
 class ListController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
     protected $allowAnonymous = [];
 
-    // Private
-    // =========================================================================
-
-    private $_list;
-    private $_owner;
-    private $_element;
-    private $_site;
+    protected $list;
 
     // Public Methods
     // =========================================================================
 
-    public function actionIndex()
-    {
-        return $this->actionAdd();
-    }
-
-    public function actionAdd()
+    public function actionSubscribe()
     {
         $this->requireLogin();
-        $this->requirePostRequest();
 
-        $owner = $this->_getOwner();
-        $element = $this->_getElement();
-        $list = $this->_getList();
-        $site = $this->_getSite();
-
-        // Create Subscription
-        $subscription = Listit::$plugin->subscriptions->createSubscription([
-            'subscriberId' => $owner->id ?? null,
-            'elementId' => $element->id ?? null,
-            'list' => $list,
-            'siteId' => $site->id ?? null,
-        ]);
-
-        // Save Subscription
-        if (!Listit::$plugin->subscriptions->saveSubscription($subscription))
+        // Check subscriber permission
+        $subscriber = $this->_getSubscriber();
+        if($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id)
         {
-            return $this->_handleFailedResponse($subscription);
+            $this->requireAdmin();
         }
-        return $this->_handleSuccessfulResponse($subscription);
+
+        // Check element
+        $element = $this->_getElement();
+        if($element === false)
+        {
+            return $this->_failureResponse(false, [
+                'error' => Craft::t('listit', 'Supplied element could not be found')
+            ]);
+        }
+
+        // Create subscription
+        $subscription = new Subscription();
+        $subscription->list = $this->_getList();
+        $subscription->subscriberId = $this->_getSubscriber()->id ?? null;
+        $subscription->siteId = $this->_getSite()->id ?? null;
+        $subscription->elementId = $element->id ?? null;
+        $subscription->metadata = $request->getBodyParam('metadata', []);
+
+        // Save subscription
+        if (!Listit::$plugin->getSubscriptions()->saveSubscription($subscription))
+        {
+            return $this->_failureResponse($subscription);
+        }
+        return $this->_successResponse($subscription);
     }
 
-    public function actionRemove()
+    public function actionUnsubscribe()
     {
         $this->requireLogin();
-        $this->requirePostRequest();
 
-        $owner = $this->_getOwner();
-        $element = $this->_getElement();
-        $list = $this->_getList();
-        $site = $this->_getSite();
+        // Get subscription
+        $subscription = false;
+        if($id = Craft::$app->getRequest()->getBodyParam('id'))
+        {
+            $subscription = Listit::$plugin->getSubscriptions()->getSubscritionById((int)$id);
+        }
+        else
+        {
+            $element = $this->_getElement();
+            if($element === false)
+            {
+                return $this->_failureResponse(false, [
+                    'error' => Craft::t('listit', 'Supplied element could not be found')
+                ]);
+            }
 
-        // Get Subscription
-        $subscription = Listit::$plugin->subscriptions->getSubscription([
-            'subscriberId' => $owner->id ?? null,
-            'elementId' => $element->id ?? null,
-            'list' => $list,
-            'siteId' => $site->id ?? null
-        ]);
+            $subscription = Subscription::find()
+                ->list($request->getBodyParam('list', null))
+                ->elementId($this->_getElement()->id ?? null)
+                ->siteId($this->_getSite()->id ?? null)
+                ->one();
+        }
 
-        // No Subscription Found
         if (!$subscription)
         {
-            return $this->_handleFailedResponse(false, [
-                'error' => Craft::t('listit', 'Subscription does not exist')
-            ]);
+            return $this->_failureResponse(false, ['error' => Craft::t('listit', 'Subscription does not exist')]);
         }
 
-        // Delete Subscription
-        if (!Listit::$plugin->subscriptions->deleteSubscription($subscription->id))
+        // Check permissions
+        if($subscription->getSubscriber()->id != Craft::$app->getUser()->getIdentity()->id)
         {
-            return $this->_handleFailedResponse($subscription, [
-                'error' => Craft::t('listit', 'Could not delete subscription')
-            ]);
+            $this->requireAdmin();
         }
-        return $this->_handleSuccessfulResponse();
-    }
 
+        // Delete subscription
+        if (!Listit::$plugin->getSubscriptions()->deleteSubscription($subscription))
+        {
+            return $this->_failureResponse($subscription, ['error' => Craft::t('listit', 'Subscription could not be deleted')]);
+        }
+
+        return $this->_success();
+    }
 
     // Follow
     // =========================================================================
 
     public function actionFollow()
     {
-        $this->_list = Lists::FOLLOW_LIST_HANDLE;
-        $this->_requireElementOfType(User::class);
-        return $this->actionAdd();
+        $this->list = Lists::FOLLOW_LIST_HANDLE;
+        return $this->actionSubscribe();
     }
 
     public function actionUnFollow()
     {
-        $this->_list = Lists::FOLLOW_LIST_HANDLE;
-        $this->_requireElementOfType(User::class);
-        return $this->actionRemove();
-    }
-
-    // Friend
-    // =========================================================================
-
-    public function actionFriend()
-    {
-        $this->_list = Lists::FRIEND_LIST_HANDLE;
-        $this->_requireElementOfType(User::class);
-        return $this->actionAdd();
-    }
-
-    public function actionUnFriend()
-    {
-        $this->_list = Lists::FRIEND_LIST_HANDLE;
-        $this->_requireElementOfType(User::class);
-        return $this->actionRemove();
+        $this->list = Lists::FOLLOW_LIST_HANDLE;
+        return $this->actionUnsubscribe();
     }
 
     // Favourite
@@ -136,14 +125,14 @@ class ListController extends Controller
 
     public function actionFavourite()
     {
-        $this->_list = Lists::FAVOURITE_LIST_HANDLE;
-        return $this->actionAdd();
+        $this->list = Lists::FAVOURITE_LIST_HANDLE;
+        return $this->actionSubscribe();
     }
 
     public function actionUnFavourite()
     {
-        $this->_list = Lists::FAVOURITE_LIST_HANDLE;
-        return $this->actionRemove();
+        $this->list = Lists::FAVOURITE_LIST_HANDLE;
+        return $this->actionUnsubscribe();
     }
 
     // Favorite (US Spelling)
@@ -164,14 +153,14 @@ class ListController extends Controller
 
     public function actionLike()
     {
-        $this->_list = Lists::LIKE_LIST_HANDLE;
-        return $this->actionAdd();
+        $this->list = Lists::LIKE_LIST_HANDLE;
+        return $this->actionSubscribe();
     }
 
     public function actionUnLike()
     {
-        $this->_list = Lists::LIKE_LIST_HANDLE;
-        return $this->actionRemove();
+        $this->list = Lists::LIKE_LIST_HANDLE;
+        return $this->actionUnsubscribe();
     }
 
     // Star
@@ -179,14 +168,14 @@ class ListController extends Controller
 
     public function actionStar()
     {
-        $this->_list = Lists::STAR_LIST_HANDLE;
-        return $this->actionAdd();
+        $this->list = Lists::STAR_LIST_HANDLE;
+        return $this->actionSubscribe();
     }
 
     public function actionUnStar()
     {
-        $this->_list = Lists::STAR_LIST_HANDLE;
-        return $this->actionRemove();
+        $this->list = Lists::STAR_LIST_HANDLE;
+        return $this->actionUnsubscribe();
     }
 
     // Bookmark
@@ -194,78 +183,52 @@ class ListController extends Controller
 
     public function actionBookmark()
     {
-        $this->_list = Lists::BOOKMARK_LIST_HANDLE;
-        return $this->actionAdd();
+        $this->list = Lists::BOOKMARK_LIST_HANDLE;
+        return $this->actionSubscribe();
     }
 
     public function actionUnBookmark()
     {
-        $this->_list = Lists::BOOKMARK_LIST_HANDLE;
-        return $this->actionRemove();
+        $this->list = Lists::BOOKMARK_LIST_HANDLE;
+        return $this->actionUnsubscribe();
     }
 
-    // Private
+    // Private Methods
     // =========================================================================
 
     private function _getList()
     {
-        if($this->_list)
-        {
-            return $this->_list;
-        }
-
-        return $list ?? Craft::$app->getRequest()->getParam('list');
+        return $this->list ?? Craft::$app->getRequest()->getBodyParam('list', null);
     }
 
-    private function _getOwner()
+    private function _getSubscriber()
     {
-        if($this->_owner)
+        if($subscriberId = Craft::$app->getRequest()->getBodyParam('subscriberId', false))
         {
-            return $this->_owner;
+            return Craft::$app->getUsers()->getUserById((int)$subscriberId);
         }
-
-        $subscriberId = Craft::$app->getRequest()->getParam('subscriberId', false);
-        return $subscriberId ? Craft::$app->getUsers()->getUserById($subscriberId) : Craft::$app->getUser()->getIdentity();
-    }
-
-    private function _getElement()
-    {
-        if($this->_element)
-        {
-            return $this->_element;
-        }
-
-        $elementId = Craft::$app->getRequest()->getParam('elementId', false);
-        return $elementId ? Craft::$app->getElements()->getElementById($elementId) : null;
+        return Craft::$app->getUser()->getIdentity();
     }
 
     private function _getSite()
     {
-        if($this->_element)
+        if($siteId = Craft::$app->getRequest()->getBodyParam('siteId', false))
         {
-            return $this->_element;
+            return Craft::$app->getSites()->getSiteById((int)$siteId);
         }
-
-        $siteId = Craft::$app->getRequest()->getParam('siteId', false);
-        return $siteId ? Craft::$app->getSites()->getSiteById($siteId) : Craft::$app->getSites()->getCurrentSite();
-
+        return Craft::$app->getSites()->getCurrentSite();
     }
 
-    private function _requireElementOfType($type)
+    private function _getElement()
     {
-        $element = $this->_getElement();
-
-        if (!$element->className() === $type)
+        if($elementId = Craft::$app->getRequest()->getBodyParam('elementId', false))
         {
-            return $this->_handleFailedResponse($subscription, [
-                'error' => Craft::t('listit', 'Element must be a {type}', [
-                    'type' => $type
-                ])
-            ]);
+            return Craft::$app->getElements()->getElementById((int)$elementId);
         }
+        return null;
     }
 
-    private function _handleSuccessfulResponse($subscription = null, array $result = [])
+    private function _success($subscription = null, array $result = [])
     {
         $result['success'] = true;
 
@@ -273,13 +236,7 @@ class ListController extends Controller
         {
             if($subscription instanceof Subscription)
             {
-                $result['subscription'] = [
-                    'id' => $subscription->id,
-                    'subscriberId' => $subscription->subscriberId,
-                    'elementId' => $subscription->elementId,
-                    'list' => $subscription->list,
-                    'siteId' => $subscription->siteId
-                ];
+                $result['subscription'] = $subscription->toArray();
             }
             return $this->asJson($result);
         }
@@ -292,7 +249,7 @@ class ListController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    private function _handleFailedResponse($subscription = null, array $result = [])
+    private function _failureResponse($subscription = null, array $result = [])
     {
         $result['success'] = false;
 
