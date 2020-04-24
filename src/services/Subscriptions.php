@@ -1,17 +1,12 @@
 <?php
 namespace presseddigital\listit\services;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\db\Table;
 use presseddigital\listit\models\Subscription;
 use presseddigital\listit\records\Subscription as SubscriptionRecord;
 use presseddigital\listit\events\SubscriptionEvent;
 
 use Craft;
 use craft\base\Component;
-use craft\db\Query;
-
-use yii\db\StaleObjectException;
 
 class Subscriptions extends Component
 {
@@ -108,16 +103,6 @@ class Subscriptions extends Component
         return true;
     }
 
-    public function deleteSubscriptionById(int $id, $surpressEvents = false): bool
-    {
-        $subscription = $this->getSubscriptionById($id);
-        if(!$subscription)
-        {
-            return false;
-        }
-        return $this->deleteSubscription($subscription, $surpressEvents);
-    }
-
     public function deleteSubscription(Subscription $subscription, $surpressEvents = false): bool
     {
         $subscriptionRecord = SubscriptionRecord::findOne($subscription->id);
@@ -138,6 +123,16 @@ class Subscriptions extends Component
         }
 
         return $result;
+    }
+
+    public function deleteSubscriptionById(int $id, $surpressEvents = false): bool
+    {
+        $subscription = $this->getSubscriptionById($id);
+        if(!$subscription)
+        {
+            return false;
+        }
+        return $this->deleteSubscription($subscription, $surpressEvents);
     }
 
 }

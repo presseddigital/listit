@@ -15,4 +15,7 @@
  */
 return [
     'listit plugin loaded' => 'listit plugin loaded',
+    'Subscription already exists' => 'Subscription already exists',
+    'Element not found' => 'Element not found',
+    'Subscription not found' => 'Subscription not found',
 ];

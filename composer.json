@@ -39,7 +39,7 @@
         "name": "Listit",
         "handle": "listit",
         "hasCpSettings": false,
-        "hasCpSection": true,
+        "hasCpSection": false,
         "changelogUrl": "https://raw.githubusercontent.com/presseddigital/listit/master/CHANGELOG.md",
         "components": {
             "lists": "presseddigital\\listit\\services\\Lists",

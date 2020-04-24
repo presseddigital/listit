@@ -18,13 +18,13 @@ class SubscriptionQuery extends Query
 	// Properties
 	// =========================================================================
 
-	public $id;
+	public $query;
 
+	public $id;
     public $list;
     public $subscriberId;
     public $elementId;
     public $siteId;
-
     public $dateCreated;
     public $dateUpdated;
     public $uid;
@@ -100,13 +100,19 @@ class SubscriptionQuery extends Query
         return $this;
     }
 
+    public function subscriberId(int $value = null)
+    {
+        $this->subscriberId = $value;
+        return $this;
+    }
+
 	public function element($value)
     {
         switch (true)
 	    {
-        	case $value === null || !$value:
+	    	case $value !== null && (is_bool($value) || !$value):
         	{
-        		$this->elementId = null;
+        		$this->elementId = $value ? ':notempty:' : ':empty:';
         		break;
         	}
         	case $value instanceof ElementInterface:
@@ -129,6 +135,17 @@ class SubscriptionQuery extends Query
         return $this;
     }
 
+    public function elementId(int $value = null)
+    {
+        $this->elementId = $value;
+        return $this;
+    }
+
+    public function anyElement()
+    {
+        $this->elementId = ':notempty:';
+        return $this;
+    }
 
     public function site($value)
     {
@@ -183,10 +200,6 @@ class SubscriptionQuery extends Query
         return $this;
     }
 
-    /**
-     * @inheritdoc
-     * @uses $siteId
-     */
     public function siteId($value)
     {
         $this->siteId = $value;
@@ -303,6 +316,26 @@ class SubscriptionQuery extends Query
         }
 
         return $this->_createSubscriptions($rows);
+    }
+
+    public function one($db = null)
+    {
+        if ($row = parent::one($db))
+        {
+            $subscriptions = $this->populate([$row]);
+            return reset($subscriptions) ?: null;
+        }
+
+        return null;
+    }
+
+    public function ids($db = null): array
+    {
+        $select = $this->select;
+        $this->select = ['subscriptions.id' => 'subscriptions.id'];
+        $result = $this->column($db);
+        $this->select($select);
+        return $result;
     }
 
 

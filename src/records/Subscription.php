@@ -9,7 +9,6 @@ use craft\records\Element;
 use craft\validators\HandleValidator;
 use yii\db\ActiveQueryInterface;
 
-
 /**
  * Subscription record.
  *
@@ -38,8 +37,8 @@ class Subscription extends ActiveRecord
         return [
         	[['list'], 'string', 'max' => 255],
         	[['list'], HandleValidator::class, 'reservedWords' => []],
-            [['list'], 'unique', 'targetAttribute' => ['list', 'subscriberId', 'siteId', 'elementId']],
-        	[['id', 'subscriberId', 'siteId', 'list'], 'required'],
+            [['list'], 'unique', 'targetAttribute' => ['list', 'subscriberId', 'siteId', 'elementId'], 'message' => Listit::t('Subscription already exists')],
+        	[['subscriberId', 'siteId', 'list'], 'required'],
         ];
     }
 

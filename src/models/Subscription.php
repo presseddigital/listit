@@ -43,7 +43,7 @@ class Subscription extends Model
     {
         $rules = parent::defineRules();
         $rules[] = [['id', 'subscriberId', 'siteId', 'elementId'], 'number', 'integerOnly' => true ];
-        $rules[] = [['id', 'subscriberId', 'siteId', 'list'], 'required'];
+        $rules[] = [['subscriberId', 'siteId', 'list'], 'required'];
         // $rules[] = [['elementId'], 'validateSubscriberId'];
         // $rules[] = [['elementId'], 'validateElementId'];
         return $rules;
