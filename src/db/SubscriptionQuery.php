@@ -1,17 +1,19 @@
 <?php
 namespace presseddigital\listit\db;
 
-use presseddigital\listit\db\Table;
-use presseddigital\listit\models\Subscription;
-
 use Craft;
 use craft\db\Query;
 use craft\db\ElementQueryInterface;
+use craft\db\Table as CraftTable;
 use craft\helpers\Db;
+use craft\helpers\ArrayHelper;
 use craft\base\ElementInterface;
-use craft\elements\User;
 use craft\models\Site;
+use craft\elements\User;
 use yii\base\InvalidArgumentException;
+use presseddigital\listit\db\Table;
+use presseddigital\listit\models\Subscription;
+use presseddigital\listit\helpers\ElementHelper;
 
 class SubscriptionQuery extends Query
 {
@@ -19,6 +21,9 @@ class SubscriptionQuery extends Query
 	// =========================================================================
 
 	public $query;
+    public $asArray = false;
+
+    protected $defaultOrderBy = ['subscriptions.dateCreated' => SORT_DESC];
 
 	public $id;
     public $list;
@@ -29,9 +34,7 @@ class SubscriptionQuery extends Query
     public $dateUpdated;
     public $uid;
 
-    public $asArray = false;
-
-    public $elementType;
+    public $type;
 
     // Public Methods
     // =========================================================================
@@ -48,6 +51,7 @@ class SubscriptionQuery extends Query
             case 'subscriber':
             case 'element':
             case 'site':
+            case 'type':
             {
             	$this->$name($value);
             	break;
@@ -57,6 +61,15 @@ class SubscriptionQuery extends Query
                 parent::__set($name, $value);
             }
         }
+    }
+
+    // Parameter setters
+    // -------------------------------------------------------------------------
+
+    public function type(string $value = null)
+    {
+    	$this->type = $value ? ElementHelper::normalizeClassName($value) : null;
+        return $this;
     }
 
     public function id($value)
@@ -259,14 +272,21 @@ class SubscriptionQuery extends Query
 
         $this->query = (new Query())
             ->select($select)
-            ->from([Table::SUBSCRIPTIONS . ' subscriptions']);
+            ->from([Table::SUBSCRIPTIONS . ' subscriptions'])
+            ->leftJoin(CraftTable::ELEMENTS.' elements', '[[elements.id]] = [[subscriptions.elementId]]')
+            // ->addSelect(['elementType' => 'elements.type'])
+            ->andWhere($this->where)
+            ->offset($this->offset)
+            ->limit($this->limit)
+            ->orderBy($this->orderBy ? $this->orderBy : $this->defaultOrderBy)
+            ->addParams($this->params);
 
         if ($this->id)
         {
             $this->query->andWhere(Db::parseParam('subscriptions.id', $this->id));
         }
 
-        if ($this->list)
+        if ($this->list !== '*' && $this->list)
         {
             $this->query->andWhere(Db::parseParam('subscriptions.list', $this->list));
         }
@@ -287,8 +307,10 @@ class SubscriptionQuery extends Query
         	$this->query->andWhere(Db::parseParam('subscriptions.elementId', $this->elementId));
         }
 
-    	// TODO: @sam - Restirct results by elementType
-        //            - Join the elements table and restrict by type(s) supplied
+        if($this->type)
+        {
+        	$this->query->andWhere(Db::parseParam('elements.type', $this->type));
+        }
 
         if ($this->dateCreated)
         {
@@ -318,6 +340,9 @@ class SubscriptionQuery extends Query
         return $this->_createSubscriptions($rows);
     }
 
+    // Execution functions
+    // -------------------------------------------------------------------------
+
     public function one($db = null)
     {
         if ($row = parent::one($db))
@@ -329,15 +354,14 @@ class SubscriptionQuery extends Query
         return null;
     }
 
-    public function ids($db = null): array
+    public function ids($db = null, string $column = 'id')
     {
         $select = $this->select;
-        $this->select = ['subscriptions.id' => 'subscriptions.id'];
-        $result = $this->column($db);
+        $this->select = ['subscriptions.'.$column => 'subscriptions.'.$column];
+        $result = parent::column($db);
         $this->select($select);
-        return $result;
+        return array_unique($result);
     }
-
 
     // Private Methods
     // -------------------------------------------------------------------------
@@ -376,12 +400,6 @@ class SubscriptionQuery extends Query
                 $subscriptions[$key] = $subscription;
             }
         }
-
-        // Is this something we can do?
-        // if ($this->with)
-        // {
-        //     Craft::$app->getElements()->eagerLoadElements($this->elementType, $elements, $this->with);
-        // }
 
         return $subscriptions;
     }

@@ -3,6 +3,8 @@ namespace presseddigital\listit\models;
 
 use presseddigital\listit\Listit;
 use presseddigital\listit\db\SubscriptionQuery;
+use presseddigital\listit\db\SubscriberQuery;
+use presseddigital\listit\db\ElementQuery;
 
 use Craft;
 use craft\base\Model;
@@ -34,6 +36,16 @@ class Subscription extends Model
     public static function find(): SubscriptionQuery
     {
         return new SubscriptionQuery();
+    }
+
+    public static function findSubscribers(): SubscriberQuery
+    {
+        return new SubscriberQuery();
+    }
+
+    public static function findElements(): ElementQuery
+    {
+        return new ElementQuery();
     }
 
     // Protected Methods
