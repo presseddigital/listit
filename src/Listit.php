@@ -8,6 +8,8 @@ use presseddigital\listit\web\twig\Extension;
 use Craft;
 use craft\base\Plugin;
 use craft\web\twig\variables\CraftVariable;
+use craft\events\RegisterUserPermissionsEvent;
+use craft\services\UserPermissions;
 use yii\base\Event;
 
 class Listit extends Plugin
@@ -65,9 +67,21 @@ class Listit extends Plugin
             $variable->attachBehavior('listit', CraftVariableBehavior::class);
         });
 
+        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $event->permissions[$this->name] = [
+                'listit:editOtherUsersSubscriptions' => [
+                    'label' => self::t('Edit other users subcriptions'),
+                ],
+                'listit:deleteOtherUsersSubscriptions' => [
+                    'label' => self::t('Delete other users subcriptions'),
+                ],
+            ];
+        }
+    );
+
         self::$view->registerTwigExtension(new Extension());
 
-        Craft::info(Craft::t('listit', '{name} plugin loaded', ['name' => $this->name] ), __METHOD__);
+        self::info(self::t('{name} plugin loaded', ['name' => $this->name] ), __METHOD__);
     }
 
     // Private Methods

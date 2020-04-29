@@ -30,7 +30,7 @@ class ListController extends Controller
         $subscriber = $this->_getSubscriber();
         if($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id)
         {
-            $this->requireAdmin();
+            $this->requirePermission('listit:editOtherUsersSubscriptions');
         }
 
         // Create subscription
@@ -59,7 +59,7 @@ class ListController extends Controller
         // Can delete
         if($subscription->subscriberId != Craft::$app->getUser()->getIdentity()->id)
         {
-            $this->requireAdmin();
+            $this->requirePermission('listit:deleteOtherUsersSubscriptions');
         }
 
         // Delete subscription
