@@ -64,6 +64,16 @@ class Subscription extends Model
     // Public Methods
     // =========================================================================
 
+    public function init()
+    {
+        parent::init();
+
+        if ($this->siteId === null)
+        {
+            $this->siteId = Craft::$app->getSites()->getPrimarySite()->id;
+        }
+    }
+
     // public function validateElementId()
     // {
     //     if($this->list && $this->elementId)
@@ -76,6 +86,16 @@ class Subscription extends Model
     //         }
     //     }
     // }
+
+    public function beforeValidate()
+    {
+        if (!$this->subscriberId)
+        {
+            $this->subscriberId = Craft::$app->getUser()->getId();
+        }
+
+        return parent::beforeValidate();
+    }
 
     public function getSubscriber()
     {
