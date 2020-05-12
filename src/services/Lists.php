@@ -12,7 +12,6 @@ use craft\db\Query;
 
 class Lists extends Component
 {
-
     // Private
     // =========================================================================
 

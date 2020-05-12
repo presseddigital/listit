@@ -1,13 +1,15 @@
 <?php
 namespace presseddigital\listit\db;
 
+use presseddigital\listit\Listit;
+use presseddigital\listit\db\SubscriptionQuery;
+
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\db\QueryAbortedException;
 use craft\elements\User;
-
-use presseddigital\listit\db\SubscriptionQuery;
 
 class ElementQuery extends SubscriptionQuery
 {
@@ -39,6 +41,19 @@ class ElementQuery extends SubscriptionQuery
     {
         $this->criteria = $criteria;
         return $this;
+    }
+
+    // Query
+    // -------------------------------------------------------------------------
+
+    public function prepare($builder)
+    {
+        // Need to ensure there is a list to get elements (if we are sticking to single elements per request)
+        if(!$this->list || $this->list == '*')
+        {
+            throw new QueryAbortedException();
+        }
+        return parent::prepare($builder);
     }
 
     // Execution functions
@@ -133,18 +148,15 @@ class ElementQuery extends SubscriptionQuery
         $ids = $this->_getElementIds($db);
         if($ids)
         {
-            // Get the supplied type
-            $type = $this->type;
-            if(!$type)
+            if(!$this->type)
             {
-                $type = (new Query())
-                    ->select('type')
-                    ->from(CraftTable::ELEMENTS)
-                    ->where(['id' => $ids[0]])
-                    ->scalar();
+                $list = Listit::$plugin->getLists()->getListByHandle($this->list);
+                $this->type = $list->elementType ?? null;
             }
 
-            $query = (new $type)::find();
+            if(!$this->type) return null;
+
+            $query = $this->type::find();
             if($this->criteria)
             {
                 Craft::configure($query, $this->criteria);
@@ -153,41 +165,6 @@ class ElementQuery extends SubscriptionQuery
             return $query;
         }
         return null;
-
-        // TODO: @sam - This could be a mix of element types, or maybe not even have an element
-        //            - Need to handle and return the ids here!
-        //            - Below is how we handled it in the original version of listit
-
-        // $elementsToReturn = $elementIds;
-        //
-        // $elements = (new Query())
-        //     ->select(['id', 'type'])
-        //     ->from([ElementRecord::tableName()])
-        //     ->where([
-        //         'id' => $elementIds,
-        //     ])
-        //     ->all();
-        //
-        // $elementIdsByType = [];
-        // foreach ($elements as $element)
-        // {
-        //     $elementIdsByType[$element['type']][] = $element['id'];
-        // }
-        // foreach ($elementIdsByType as $elementType => $ids)
-        // {
-        //     $criteria = ['id' => $ids];
-        //     $elements = $this->_getElementQuery($elementType, $criteria)->all();
-        //
-        //     foreach ($elements as $element)
-        //     {
-        //         $key = array_search($element->id, $elementIds);
-        //         $elementsToReturn[$key] = $element;
-        //     }
-        // }
-        //
-        // return $elementsToReturn;
-
-
     }
 
 }

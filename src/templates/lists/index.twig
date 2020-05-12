@@ -5,7 +5,8 @@
     "No lists exist yet.",
     "Name",
     "Handle",
-    "Element",
+    "Subscribers",
+    "Element Type",
     "Are you sure you want to delete {name} and all subscribers?"
 ]) %}
 
@@ -21,29 +22,20 @@
         id: list.handle,
         title: list.name,
         url: url('listit/lists/'~list.handle),
+        subscribers: list.totalSubscriptions,
         handle: list.handle,
-        element: list.displayElementType,
+        element: list.elementTypeLabel,
     }]) %}
 {% endfor %}
 
 {% js %}
-    var columns = [
-        {
-            name: '__slot:title',
-            title: Craft.t('listit', 'Name'),
-        },
-        {
-            name: '__slot:handle',
-            title: Craft.t('listit', 'Handle'),
-        },
-        {
-            name: 'element',
-            title: Craft.t('listit', 'Element'),
-        },
-    ];
-
     new Craft.VueAdminTable({
-        columns: columns,
+        columns: [
+            { name: '__slot:title', title: Craft.t('listit', 'Name') },
+            { name: '__slot:handle', title: Craft.t('listit', 'Handle') },
+            { name: 'subscribers', title: 'Subscribers' },
+            { name: 'element', title: Craft.t('listit', 'Element Type') },
+        ],
         padding: true,
         container: '#lists-vue-admin-table',
         deleteAction: 'listit/list/delete-list',

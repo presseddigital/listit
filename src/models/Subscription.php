@@ -8,6 +8,10 @@ use presseddigital\listit\db\ElementQuery;
 
 use Craft;
 use craft\base\Model;
+use craft\base\ElementInterface;
+use craft\elements\User;
+use craft\helpers\App;
+use craft\helpers\Json;
 
 class Subscription extends Model
 {
@@ -73,6 +77,11 @@ class Subscription extends Model
         {
             $this->siteId = Craft::$app->getSites()->getPrimarySite()->id;
         }
+
+        if ($this->metadata !== null)
+        {
+            $this->metadata = Json::decode($this->metadata, true);
+        }
     }
 
     public function validateElement()
@@ -125,6 +134,10 @@ class Subscription extends Model
         return $this->elementType = get_class($element);
     }
 
+    public function getDisplayElementType()
+    {
+        return $this->elementType ? ucwords(App::humanizeClass($this->elementType)) : '-';
+    }
 
     public function beforeValidate()
     {
@@ -136,9 +149,9 @@ class Subscription extends Model
         return parent::beforeValidate();
     }
 
-    public function setSubscriber(User $user = null)
+    public function setSubscriber(User $subscriber = null)
     {
-        $this->_subscriber = $user;
+        $this->_subscriber = $subscriber;
     }
 
     public function getSubscriber()

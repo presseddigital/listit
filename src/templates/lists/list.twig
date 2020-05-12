@@ -2,47 +2,45 @@
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
 {% do view.registerTranslations('listit', [
-    "Name",
-    "Handle",
-    "No lists exist yet.",
+    "Subscriber",
+    "Date",
+    "No subscriptions exist yet.",
+    "Are you sure you want to delete this subscription?",
 ]) %}
 
-
+{% set list = listit.plugin.lists.getListByHandle(handle) %}
+{% if not list %}
+    {% exit 404 %}
+{% endif %}
 
 {% block content %}
-    {{ d(handle) }}
     <div id="list-vue-admin-table"></div>
 {% endblock %}
 
-{% set tableData = [] %}
-{# {% for list in lists %}
-    {% set tableData = tableData|merge([{
-        id: list.handle,
-        handle: list.handle,
-        title: list.name,
-        url: url('listit/lists/'~list.handle),
-    }]) %}
-{% endfor %} #}
-
 {% js %}
-    var columns = [
-        {
-            name: '__slot:title',
-            title: Craft.t('listit', 'Name'),
-        },
-        {
-            name: '__slot:handle',
-            title: Craft.t('listit', 'Handle'),
-        },
-    ];
+    {% if list.elementType %}
+        var columns = [
+            { name: 'subscriber', title: Craft.t('listit', 'Subscriber') },
+            { name: 'date', title: Craft.t('listit', 'Date') },
+            { name: 'element', title: '{{ list.displayElementType }}' },
+            { name: '__slot:detail', title: '' },
+        ];
+    {% else %}
+        var columns = [
+            { name: 'subscriber', title: Craft.t('listit', 'Subscriber') },
+            { name: 'date', title: Craft.t('listit', 'Date') },
+            { name: '__slot:detail', title: '' },
+        ];
+    {% endif %}
 
     new Craft.VueAdminTable({
         columns: columns,
+        perPage: 2,
         container: '#list-vue-admin-table',
-        deleteAction: 'listit/list/delete-list',
+        deleteAction: 'listit/list/delete-subscription',
         deleteConfirmationMessage: 'Are you sure you want to delete this subscription?',
         emptyMessage: Craft.t('listit', 'No subscriptions exist yet.'),
-        tableData: {{ tableData|json_encode|raw }}
+        tableDataEndpoint: 'listit/list/subscriptions?list={{ handle }}'
     });
 {% endjs %}
 

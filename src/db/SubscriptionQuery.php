@@ -1,6 +1,10 @@
 <?php
 namespace presseddigital\listit\db;
 
+use presseddigital\listit\db\Table;
+use presseddigital\listit\models\Subscription;
+use presseddigital\listit\helpers\ElementHelper;
+
 use Craft;
 use craft\db\Query;
 use craft\db\ElementQueryInterface;
@@ -11,11 +15,8 @@ use craft\base\ElementInterface;
 use craft\models\Site;
 use craft\elements\User;
 use yii\base\InvalidArgumentException;
-use presseddigital\listit\db\Table;
-use presseddigital\listit\models\Subscription;
-use presseddigital\listit\helpers\ElementHelper;
 
-class SubscriptionQuery extends ActiveQuery
+class SubscriptionQuery extends Query
 {
 	// Properties
 	// =========================================================================
@@ -35,11 +36,6 @@ class SubscriptionQuery extends ActiveQuery
     public $uid;
 
     public $type;
-
-// - Load your initial batch of models
-// - Load a mapping of model IDs to their related element IDs
-// - Load all of the unique related elements targeted by the mapping in a single query (or at least one query per element type)
-// - Use the mapping to create arrays of all related elements for each of your models, and set the appropriate elements on those models in some way (it's OK if the same element ends up getting assigned to more than one model)
 
     // Public Methods
     // =========================================================================
@@ -259,6 +255,15 @@ class SubscriptionQuery extends ActiveQuery
 
     public function prepare($builder)
     {
+        $this->query = (new Query())
+            ->from([Table::SUBSCRIPTIONS . ' subscriptions'])
+            ->leftJoin(CraftTable::ELEMENTS.' elements', '[[elements.id]] = [[subscriptions.elementId]]')
+            ->andWhere($this->where)
+            ->offset($this->offset)
+            ->limit($this->limit)
+            ->orderBy($this->orderBy ? $this->orderBy : $this->defaultOrderBy)
+            ->addParams($this->params);
+
         $select = array_merge((array)$this->select);
         if(empty($select))
         {
@@ -270,22 +275,12 @@ class SubscriptionQuery extends ActiveQuery
                 'subscriptions.siteId' => 'subscriptions.siteId',
                 'subscriptions.dateCreated' => 'subscriptions.dateCreated',
                 'subscriptions.dateUpdated' => 'subscriptions.dateUpdated',
-                'subscriptions.dateCreated' => 'subscriptions.dateCreated',
+                'subscriptions.metadata' => 'subscriptions.metadata',
                 'subscriptions.uid' => 'subscriptions.uid',
                 'elementType' => 'elements.type',
             ];
         }
-
-        $this->query = (new Query())
-            ->select($select)
-            ->from([Table::SUBSCRIPTIONS . ' subscriptions'])
-            ->leftJoin(CraftTable::ELEMENTS.' elements', '[[elements.id]] = [[subscriptions.elementId]]')
-            ->andWhere($this->where)
-            ->offset($this->offset)
-            ->limit($this->limit)
-            ->orderBy($this->orderBy ? $this->orderBy : $this->defaultOrderBy)
-            ->addParams($this->params)
-            ->with('subscriber');
+        $this->query->select($select);
 
         if ($this->id)
         {
@@ -417,8 +412,56 @@ class SubscriptionQuery extends ActiveQuery
             }
         }
 
+        $this->_eagerLoadElements($subscriptions);
+
         return $subscriptions;
     }
 
+
+    private function _eagerLoadElements(array $subscriptions)
+    {
+        if (empty($subscriptions))
+        {
+            return;
+        }
+
+        // Build map of subscribers and elements to eager load by type
+        $eagerLoadingMap = [];
+        foreach ($subscriptions as $subscription)
+        {
+            $eagerLoadingMap[User::class][] = $subscription->subscriberId;
+            if($subscription->elementType && $subscription->elementId)
+            {
+                $eagerLoadingMap[$subscription->elementType][] = $subscription->elementId;
+            }
+        }
+
+        // Load elements indexed by id
+        $elementsById = [];
+        foreach ($eagerLoadingMap as $elementType => $elementIds)
+        {
+            $query = $elementType::find();
+            $query->orderBy = null;
+            $query->offset = null;
+            $query->limit = null;
+            $query->andWhere(['elements.id' => array_values(array_unique($elementIds))]);
+            $query->indexBy('id');
+            $elementsById += $query->all();
+        }
+
+        // Add elements to required subscriptions
+        foreach($subscriptions as &$subscription)
+        {
+            if(isset($elementsById[$subscription->subscriberId]))
+            {
+                $subscription->setSubscriber($elementsById[$subscription->subscriberId]);
+            }
+
+            if(isset($elementsById[$subscription->elementId]))
+            {
+                $subscription->setElement($elementsById[$subscription->elementId]);
+            }
+        }
+    }
 
 }

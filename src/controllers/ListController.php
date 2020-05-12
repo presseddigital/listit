@@ -3,12 +3,12 @@ namespace presseddigital\listit\controllers;
 
 use presseddigital\listit\Listit;
 use presseddigital\listit\models\Subscription;
-
 use presseddigital\listit\services\Lists;
 
 use Craft;
 use craft\web\Controller;
 use craft\helpers\AdminTable;
+use craft\helpers\Json;
 use craft\elements\User;
 use yii\web\NotFoundHttpException;
 
@@ -18,32 +18,57 @@ class ListController extends Controller
     // =========================================================================
 
     protected $allowAnonymous = [];
-    protected $list;
 
     // Public Methods
     // =========================================================================
 
-    public function actionLists()
+    public function actionSubscriptions()
     {
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
+        $list = $request->getRequiredParam('list');
         $page = $request->getParam('page', 1);
-        $sort = $request->getParam('sort', null);
         $limit = $request->getParam('per_page', 10);
         $offset = ($page - 1) * $limit;
 
-        $lists = Listit::$plugin->getLists()->getAllLists();
+        $subscriptions = Subscription::find()
+            ->list($list)
+            ->subscriberId($this->_getSubscriber()->id ?? null)
+            ->elementId($this->_getElement()->id ?? null)
+            ->siteId($this->_getSite()->id ?? null)
+            ->offset($offset)
+            ->limit($limit);
+
+        $total = $subscriptions->count();
 
         $rows = [];
-        foreach ($lists as $order) {
+        foreach ($subscriptions->all() as $subscription)
+        {
+            $subscriber = Craft::$app->getView()->renderTemplate('_elements/element', [
+                'element' => $subscription->subscriber,
+            ]);
+
+            $element = '';
+            if ($subscription->element)
+            {
+                $element = Craft::$app->getView()->renderTemplate('_elements/element', [
+                    'element' => $subscription->element,
+                ]);
+            }
+
             $rows[] = [
-                'id' => $order->id,
-                'title' => $order->reference,
-                'url' => $order->getCpEditUrl(),
-                'date' => $order->dateOrdered->format('D jS M Y'),
-                'total' => Craft::$app->getFormatter()->asCurrency($order->getTotalPaid(), $order->currency, [], [], false),
-                'orderStatus' => $order->getOrderStatusHtml(),
+                'id' => $subscription->id,
+                'title' => $subscription->subscriber->fullName,
+                'url' => $subscription->subscriber->getCpEditUrl(),
+                'status' => $subscription->subscriber->status,
+                'date' => $subscription->dateUpdated->format('jS M Y'),
+                'subscriber' => $subscriber,
+                'element' => $element,
+                'detail' => [
+                    'handle' => '<span data-icon="info"></span>',
+                    'content' => '<pre class="pane"><code>'.Json::encode($subscription->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT).'</code></pre>'
+                ]
             ];
         }
 
@@ -102,94 +127,6 @@ class ListController extends Controller
         return $this->_successResponse();
     }
 
-    // Follow
-    // =========================================================================
-
-    public function actionFollow()
-    {
-        $this->list = Lists::FOLLOW_LIST_HANDLE;
-        return $this->actionSubscribe();
-    }
-
-    public function actionUnFollow()
-    {
-        $this->list = Lists::FOLLOW_LIST_HANDLE;
-        return $this->actionUnsubscribe();
-    }
-
-    // Favourite
-    // =========================================================================
-
-    public function actionFavourite()
-    {
-        $this->list = Lists::FAVOURITE_LIST_HANDLE;
-        return $this->actionSubscribe();
-    }
-
-    public function actionUnFavourite()
-    {
-        $this->list = Lists::FAVOURITE_LIST_HANDLE;
-        return $this->actionUnsubscribe();
-    }
-
-    // Favorite (US Spelling)
-    // =========================================================================
-
-    public function actionFavorite()
-    {
-        return $this->actionFavourite();
-    }
-
-    public function actionUnFavorite()
-    {
-        return $this->actionUnFavourite();
-    }
-
-    // Like
-    // =========================================================================
-
-    public function actionLike()
-    {
-        $this->list = Lists::LIKE_LIST_HANDLE;
-        return $this->actionSubscribe();
-    }
-
-    public function actionUnLike()
-    {
-        $this->list = Lists::LIKE_LIST_HANDLE;
-        return $this->actionUnsubscribe();
-    }
-
-    // Star
-    // =========================================================================
-
-    public function actionStar()
-    {
-        $this->list = Lists::STAR_LIST_HANDLE;
-        return $this->actionSubscribe();
-    }
-
-    public function actionUnStar()
-    {
-        $this->list = Lists::STAR_LIST_HANDLE;
-        return $this->actionUnsubscribe();
-    }
-
-    // Bookmark
-    // =========================================================================
-
-    public function actionBookmark()
-    {
-        $this->list = Lists::BOOKMARK_LIST_HANDLE;
-        return $this->actionSubscribe();
-    }
-
-    public function actionUnBookmark()
-    {
-        $this->list = Lists::BOOKMARK_LIST_HANDLE;
-        return $this->actionUnsubscribe();
-    }
-
     // Private Methods
     // =========================================================================
 
@@ -220,7 +157,7 @@ class ListController extends Controller
 
     private function _getList()
     {
-        return $this->list ?? Craft::$app->getRequest()->getBodyParam('list', null);
+        return Craft::$app->getRequest()->getBodyParam('list', null);
     }
 
     private function _getSubscriber()

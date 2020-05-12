@@ -15,6 +15,7 @@ class ListModel extends Model
     // =========================================================================
 
     private $_name;
+    private $_subscriptions;
 
     // Public Properties
     // =========================================================================
@@ -24,6 +25,24 @@ class ListModel extends Model
 
     // Public Methods
     // =========================================================================
+
+    public static function subscriptions()
+    {
+        return Subscription::find()
+            ->list($this->handle);
+    }
+
+    public static function subscribers()
+    {
+        return Subscription::findSubscribers()
+            ->list($this->handle);
+    }
+
+    public static function elements()
+    {
+        return Subscription::findElements()
+            ->list($this->handle);
+    }
 
     public function rules()
     {
@@ -43,23 +62,14 @@ class ListModel extends Model
         return $this->_name ?? StringHelper::labelize($this->handle);
     }
 
-    public function getDisplayElementType()
+    public function getElementTypeLabel()
     {
-        return $this->elementType ? ucwords(App::humanizeClass($this->elementType)) : '-';
+        return $this->elementType ? ucwords(App::humanizeClass($this->elementType)) : '';
     }
 
-    public function getSubscriptions()
+    public function getTotalSubscriptions()
     {
-        return Subscription::find()->handle($this->handle);
+        return self::subscriptions()->count();
     }
 
-    public function getSubscribers()
-    {
-        return Subscription::findSubscribers()->handle($this->handle);
-    }
-
-    public function getElements()
-    {
-        return Subscription::findElements()->handle($this->handle);
-    }
 }
