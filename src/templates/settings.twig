@@ -1,0 +1,76 @@
+{% extends "listit/_layouts/main" %}
+{% import "_includes/forms" as forms %}
+
+{% set fullPageForm = true %}
+
+{% block content %}
+
+    <input type="hidden" name="action" value="plugins/save-plugin-settings">
+	<input type="hidden" name="pluginHandle" value="listit">
+    {{ redirectInput('listit/settings') }}
+    {{ csrfInput() }}
+
+    {% namespace 'settings' %}
+
+        {#
+            {{ forms.editableTableField({
+                label: 'List Configurations'|t,
+                instructions : 'Any lists in use will be available here for you to configure'|t('listit'),
+                id: 'lists',
+                textual: false,
+                reorder: false,
+                name: 'lists',
+                addRowLabel: 'Add list',
+                cols: {
+                    'name' : {
+                        'heading': 'Name',
+                        'type': 'singleline'
+                    },
+                    'handle' : {
+                        'heading': 'Handle',
+                        'type': 'singleline'
+                    },
+                    'elementType' : {
+                        'heading': 'Element Type',
+                        'type': 'select',
+                        'options': [{ value: '', label: 'None'|t }] + craft.app.elements.getAllElementTypes()|map(className => { value: className, label: className|humanizeClass|ucwords }),
+                    }
+                },
+                rows: settings.lists,
+                staticRows: true,
+                fixedRows: true,
+                errors: (field.getErrors('lists') ?? [])|unique,
+                first: true,
+            }) }}
+        #}
+
+        <hr>
+
+        {{ forms.textField({
+            label: 'Plugin Name'|t('listit'),
+            instructions: 'Override the plugin name for this install'|t('listit'),
+            id: 'pluginNameOverride',
+            name: 'pluginNameOverride',
+            placeholder: 'Colorit'|t('listit'),
+            value: settings.pluginNameOverride,
+            errors: settings.getErrors('pluginNameOverride'),
+        }) }}
+
+     	{{ forms.lightswitchField({
+            label: 'Show in CP Nav'|t('listit'),
+            instructions: 'Display a link to this plugin in the main navigation'|t('listit'),
+            id: 'hasCpSectionOverride',
+            name: 'hasCpSectionOverride',
+            on: settings.hasCpSectionOverride,
+            errors: settings.getErrors('hasCpSectionOverride'),
+        }) }}
+
+        <hr>
+
+        <input type="submit" class="btn submit" value="{{ 'Save'|t('listit') }}">
+
+	{% endnamespace %}
+
+{% endblock %}
+
+

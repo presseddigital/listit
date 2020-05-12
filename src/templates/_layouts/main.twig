@@ -1,0 +1,27 @@
+{% extends "listit/_layouts/base" %}
+
+{% set title = "Listit"|t('listit') %}
+
+{% set navItems = {
+    'lists': { title: "Lists"|t('listit') },
+    'settings': { title: "Settings"|t('listit') },
+} %}
+
+{% set selectedItemHandle = selectedItem ?? craft.app.request.getSegment(2)~(craft.app.request.getSegment(3) ? '/'~craft.app.request.getSegment(3)) %}
+{% set docTitle = ((navItems[selectedItemHandle] ?? false) ? navItems[selectedItemHandle].title ~' - ')~title %}
+
+{% block sidebar %}
+    <nav>
+        <ul>
+            {% for handle, item in navItems %}
+                {% if item.heading is defined %}
+                    <li class="heading"><span>{{ item.heading }}</span></li>
+                {% else %}
+                    <li>
+                        <a href="{{ url('listit/'~handle) }}"{% if handle == selectedItemHandle %} class="sel"{% endif %}>{{ item.title }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}

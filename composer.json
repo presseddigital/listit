@@ -38,8 +38,8 @@
     "extra": {
         "name": "Listit",
         "handle": "listit",
-        "hasCpSettings": false,
-        "hasCpSection": false,
+        "hasCpSettings": true,
+        "hasCpSection": true,
         "changelogUrl": "https://raw.githubusercontent.com/presseddigital/listit/master/CHANGELOG.md",
         "components": {
             "lists": "presseddigital\\listit\\services\\Lists",

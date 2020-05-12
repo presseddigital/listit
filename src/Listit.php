@@ -1,15 +1,19 @@
 <?php
 namespace presseddigital\listit;
 
-use presseddigital\listit\plugin\PluginTrait;
+use presseddigital\listit\models\Settings;
+use presseddigital\listit\plugin\RoutesTrait;
+use presseddigital\listit\plugin\ServicesTrait;
 use presseddigital\listit\web\twig\CraftVariableBehavior;
 use presseddigital\listit\web\twig\Extension;
 
 use Craft;
 use craft\base\Plugin;
 use craft\web\twig\variables\CraftVariable;
+use craft\events\PluginEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\services\UserPermissions;
+use craft\helpers\UrlHelper;
 use yii\base\Event;
 
 class Listit extends Plugin
@@ -48,7 +52,8 @@ class Listit extends Plugin
     // Traits
     // =========================================================================
 
-    use PluginTrait;
+    use RoutesTrait;
+    use ServicesTrait;
 
     // Public Methods
     // =========================================================================
@@ -58,9 +63,14 @@ class Listit extends Plugin
         parent::init();
 
         self::$plugin = $this;
+        self::$settings = $this->getSettings();
         self::$view = Craft::$app->getView();
 
+        $this->name = self::$settings->pluginNameOverride;
+        $this->hasCpSection = self::$settings->hasCpSectionOverride;
+
         $this->_setPluginComponents();
+        $this->_registerCpRoutes();
 
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             $variable = $event->sender;
@@ -68,7 +78,7 @@ class Listit extends Plugin
         });
 
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
-            $event->permissions[$this->name] = [
+            $event->permissions['Listit'] = [
                 'listit:editOtherUsersSubscriptions' => [
                     'label' => self::t('Edit other users subcriptions'),
                 ],
@@ -76,13 +86,34 @@ class Listit extends Plugin
                     'label' => self::t('Delete other users subcriptions'),
                 ],
             ];
-        }
-    );
+        });
 
         self::$view->registerTwigExtension(new Extension());
 
         self::info(self::t('{name} plugin loaded', ['name' => $this->name] ), __METHOD__);
     }
+
+    public function afterInstallPlugin(PluginEvent $event)
+    {
+        if ($event->plugin === self::$plugin && Craft::$app->getRequest()->isCpRequest)
+        {
+            Craft::$app->controller->redirect(UrlHelper::cpUrl('listit/about'))->send();
+        }
+    }
+
+    public function getSettingsResponse()
+    {
+        return Craft::$app->controller->redirect(UrlHelper::cpUrl('listit/settings'));
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function createSettingsModel()
+    {
+        return new Settings();
+    }
+
 
     // Private Methods
     // =========================================================================

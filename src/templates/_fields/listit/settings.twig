@@ -1,0 +1,146 @@
+{% import "_includes/forms" as forms %}
+
+{% if not field.presetMode %}
+
+    {{ forms.selectField({
+        label: "Presets"|t('listit'),
+        instructions: "Select a preset to define the field colors."|t('listit'),
+        id: 'presetId',
+        name: 'presetId',
+        options: presetOptions,
+        value: field.presetId ?? '',
+        errors: field.getErrors('presetId'),
+        toggle: true,
+    }) }}
+
+    <hr>
+
+    {% set selectedPresetExists = (presets[field.presetId] is defined) %}
+
+    {% if presets %}
+
+        {% for preset in presets %}
+            {% set currentPreset = field.presetId == preset.id %}
+            <div id="{{ preset.id|id }}"{% if not currentPreset %} class="hidden"{% endif %}>
+                {{ preset.getFieldInputPreviewHtml()|raw }}
+            </div>
+        {% endfor %}
+
+    {% endif %}
+
+{% endif %}
+
+
+
+{% set showInlineSettings = field.presetMode or (not selectedPresetExists or not field.presetId or field.presetId == '') %}
+
+<div id="{{ ''|id }}"{% if not showInlineSettings %} class="hidden"{% endif %}>
+
+    {{ forms.editableTableField({
+        label: 'Colors',
+        instructions : 'Set the color palette. These can be changed at any time.'|t('listit'),
+        id: 'paletteColors',
+        textual: false,
+        name: 'paletteColors',
+        addRowLabel: 'Add color',
+        cols: {
+            'label' : {
+                'heading' : 'Label',
+                'type'   : 'singleline'
+            },
+            'handle' : {
+                'heading' : 'Handle',
+                'type'   : 'singleline'
+            },
+            'color' : {
+                'heading' : 'Color #HEX',
+                'type'   : 'color'
+            }
+        },
+        rows: field.paletteColors,
+        errors: (field.getErrors('paletteColors') ?? [])|unique
+    }) }}
+
+
+    {% js %}
+        $('body').on('focus', '#{{ 'paletteColors'|namespaceInputId }} textarea[name$="[label]"]', function(event) {
+            var $label = $(this),
+                $row = $label.closest('tr'),
+                $handle = $row.find('textarea[name$="[handle]"]'),
+                handleGeneratorRequired = $label.val() == '' && $handle.val() == '' && !$row[0].hasAttribute('handle-generated');
+
+            if(handleGeneratorRequired) {
+                $rowId = $row.data('id');
+                new Craft.HandleGenerator($label, $handle);
+                $row.data('handle-generated', '');
+            }
+       });
+    {% endjs %}
+
+    {{ forms.checkboxSelectField({
+        label: "Base Colors"|t('listit'),
+        instructions: "Select the base colors that you would like to include."|t('listit'),
+        id: 'paletteBaseColors',
+        name: 'paletteBaseColors',
+        options: craft.listit.colors.baseColorsAsOptions,
+        values: field.paletteBaseColors,
+        errors: field.getErrors('paletteBaseColors')
+    })}}
+
+    {{ forms.textField({
+        label: "Default Color"|t('listit'),
+        instructions: "Set a default color using a valid color handle, this can be one of the base colors or your own colors."|t('listit'),
+        id: 'defaultColorHandle',
+        name: 'defaultColorHandle',
+        placeholder: 'transparent, white, black, custom',
+        value: field.defaultColorHandle,
+        errors: field.getErrors('defaultColorHandle')|unique,
+    }) }}
+
+    {{ forms.textField({
+        type: 'number',
+        label: "Default Opacity"|t('listit'),
+        instructions: "Set a default opacity."|t('listit'),
+        id: 'defaultOpacity',
+        name: 'defaultOpacity',
+        placeholder: '100',
+        value: field.defaultOpacity,
+        min: 0,
+        max: 100,
+        errors: field.getErrors('defaultOpacity'),
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Opacity"|t('listit'),
+        instructions: "Allow the user to set opacity."|t('listit'),
+        id: 'allowOpacity',
+        name: 'allowOpacity',
+        on: field.allowOpacity,
+        errors: field.getErrors('allowOpacity'),
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Custom Color"|t('listit'),
+        instructions: "Allow the user to set a custom color hex."|t('listit'),
+        id: 'allowCustomColor',
+        name: 'allowCustomColor',
+        on: field.allowCustomColor,
+        errors: field.getErrors('allowCustomColor'),
+    }) }}
+
+    {{ forms.selectField({
+        label: "Color Output"|t('listit'),
+        instructions: "Select the default color format you would like to return."|t('listit'),
+        id: 'colorFormat',
+        name: 'colorFormat',
+        options: {
+            'auto' : 'Auto (Best Guess)',
+            'hex' : '#454545',
+            'rgb' : 'rgb(255,255,255)',
+            'rgba' : 'rgb(255,255,255,0.5)'
+        },
+        value: field.colorFormat,
+        errors: field.getErrors('colorFormat')
+    }) }}
+
+</div>

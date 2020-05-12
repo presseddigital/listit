@@ -30,18 +30,6 @@ class Subscriptions extends Component
         return $query->one();
     }
 
-    // Needed?
-    //
-    // public function getSubscriptionsByList(string $list, $siteId = null, array $criteria = [])
-    // {
-    //     $query = Subscription::find()
-    //         ->list($list)
-    //         ->site($siteId);
-
-    //     Craft::configure($query, $criteria);
-    //     return $query->all();
-    // }
-
     public function saveSubscription(Subscription $subscriptionModel, bool $runValidation = true, $surpressEvents = false)
     {
         $isNewSubscription = !$subscriptionModel->id;

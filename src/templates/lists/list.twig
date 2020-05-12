@@ -1,0 +1,55 @@
+{% extends "listit/_layouts/main" %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+{% do view.registerTranslations('listit', [
+    "Name",
+    "Handle",
+    "No lists exist yet.",
+]) %}
+
+
+
+{% block content %}
+    {{ d(handle) }}
+    <div id="list-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+{# {% for list in lists %}
+    {% set tableData = tableData|merge([{
+        id: list.handle,
+        handle: list.handle,
+        title: list.name,
+        url: url('listit/lists/'~list.handle),
+    }]) %}
+{% endfor %} #}
+
+{% js %}
+    var columns = [
+        {
+            name: '__slot:title',
+            title: Craft.t('listit', 'Name'),
+        },
+        {
+            name: '__slot:handle',
+            title: Craft.t('listit', 'Handle'),
+        },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#list-vue-admin-table',
+        deleteAction: 'listit/list/delete-list',
+        deleteConfirmationMessage: 'Are you sure you want to delete this subscription?',
+        emptyMessage: Craft.t('listit', 'No subscriptions exist yet.'),
+        tableData: {{ tableData|json_encode|raw }}
+    });
+{% endjs %}
+
+
+
+
+
+
+
+

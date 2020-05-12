@@ -3,7 +3,7 @@ namespace presseddigital\listit\plugin;
 
 use Craft;
 
-trait PluginTrait
+trait ServicesTrait
 {
     // Public Methods
     // =========================================================================

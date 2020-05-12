@@ -8,6 +8,7 @@ use presseddigital\listit\services\Lists;
 
 use Craft;
 use craft\web\Controller;
+use craft\helpers\AdminTable;
 use craft\elements\User;
 use yii\web\NotFoundHttpException;
 
@@ -21,6 +22,36 @@ class ListController extends Controller
 
     // Public Methods
     // =========================================================================
+
+    public function actionLists()
+    {
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+        $page = $request->getParam('page', 1);
+        $sort = $request->getParam('sort', null);
+        $limit = $request->getParam('per_page', 10);
+        $offset = ($page - 1) * $limit;
+
+        $lists = Listit::$plugin->getLists()->getAllLists();
+
+        $rows = [];
+        foreach ($lists as $order) {
+            $rows[] = [
+                'id' => $order->id,
+                'title' => $order->reference,
+                'url' => $order->getCpEditUrl(),
+                'date' => $order->dateOrdered->format('D jS M Y'),
+                'total' => Craft::$app->getFormatter()->asCurrency($order->getTotalPaid(), $order->currency, [], [], false),
+                'orderStatus' => $order->getOrderStatusHtml(),
+            ];
+        }
+
+        return $this->asJson([
+            'pagination' => AdminTable::paginationLinks($page, $total, $limit),
+            'data' => $rows,
+        ]);
+    }
 
     public function actionSubscribe()
     {

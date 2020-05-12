@@ -15,7 +15,7 @@ use presseddigital\listit\db\Table;
 use presseddigital\listit\models\Subscription;
 use presseddigital\listit\helpers\ElementHelper;
 
-class SubscriptionQuery extends Query
+class SubscriptionQuery extends ActiveQuery
 {
 	// Properties
 	// =========================================================================
@@ -35,6 +35,11 @@ class SubscriptionQuery extends Query
     public $uid;
 
     public $type;
+
+// - Load your initial batch of models
+// - Load a mapping of model IDs to their related element IDs
+// - Load all of the unique related elements targeted by the mapping in a single query (or at least one query per element type)
+// - Use the mapping to create arrays of all related elements for each of your models, and set the appropriate elements on those models in some way (it's OK if the same element ends up getting assigned to more than one model)
 
     // Public Methods
     // =========================================================================
@@ -257,16 +262,17 @@ class SubscriptionQuery extends Query
         $select = array_merge((array)$this->select);
         if(empty($select))
         {
-        	$select = [
-                'subscriptions.id',
-                'subscriptions.list',
-                'subscriptions.subscriberId',
-                'subscriptions.elementId',
-                'subscriptions.siteId',
-                'subscriptions.dateCreated',
-                'subscriptions.dateUpdated',
-                'subscriptions.dateCreated',
-                'subscriptions.uid',
+            $select = [
+                'subscriptions.id' => 'subscriptions.id',
+                'subscriptions.list' => 'subscriptions.list',
+                'subscriptions.subscriberId' => 'subscriptions.subscriberId',
+                'subscriptions.elementId' => 'subscriptions.elementId',
+                'subscriptions.siteId' => 'subscriptions.siteId',
+                'subscriptions.dateCreated' => 'subscriptions.dateCreated',
+                'subscriptions.dateUpdated' => 'subscriptions.dateUpdated',
+                'subscriptions.dateCreated' => 'subscriptions.dateCreated',
+                'subscriptions.uid' => 'subscriptions.uid',
+                'elementType' => 'elements.type',
             ];
         }
 
@@ -274,12 +280,12 @@ class SubscriptionQuery extends Query
             ->select($select)
             ->from([Table::SUBSCRIPTIONS . ' subscriptions'])
             ->leftJoin(CraftTable::ELEMENTS.' elements', '[[elements.id]] = [[subscriptions.elementId]]')
-            // ->addSelect(['elementType' => 'elements.type'])
             ->andWhere($this->where)
             ->offset($this->offset)
             ->limit($this->limit)
             ->orderBy($this->orderBy ? $this->orderBy : $this->defaultOrderBy)
-            ->addParams($this->params);
+            ->addParams($this->params)
+            ->with('subscriber');
 
         if ($this->id)
         {
@@ -325,6 +331,16 @@ class SubscriptionQuery extends Query
         if ($this->uid)
         {
             $this->query->andWhere(Db::parseParam('subscriptions.uid', $this->uid));
+        }
+
+        if ($this->distinct)
+        {
+            $this->query->distinct();
+        }
+
+        if ($this->groupBy)
+        {
+            $this->query->groupBy = $this->groupBy;
         }
 
         return $this->query;

@@ -2,7 +2,10 @@
 namespace presseddigital\listit\web\twig;
 
 use presseddigital\listit\Listit;
+use presseddigital\listit\helpers\StringHelper;
 use presseddigital\listit\web\twig\ListitVariable;
+
+use craft\helpers\App;
 
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
@@ -42,12 +45,13 @@ class Extension extends AbstractExtension implements GlobalsInterface
     // Twig Filters {{ var|filter }}
     // =========================================================================
 
-    // public function getFilters(): array
-    // {
-    //     return [
-    //         new TwigFilter('filter', [Helper::class, 'filter']),
-    //     ];
-    // }
+    public function getFilters(): array
+    {
+        return [
+            new TwigFilter('humanizeClass', [App::class, 'humanizeClass']),
+            new TwigFilter('labelize', [StringHelper::class, 'labelize']),
+        ];
+    }
 
     // Twig Functions {{ function(var) }}
     // =========================================================================

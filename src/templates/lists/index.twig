@@ -1,0 +1,62 @@
+{% extends "listit/_layouts/main" %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+{% do view.registerTranslations('listit', [
+    "No lists exist yet.",
+    "Name",
+    "Handle",
+    "Element",
+    "Are you sure you want to delete {name} and all subscribers?"
+]) %}
+
+{% block content %}
+    <div id="lists-vue-admin-table"></div>
+{% endblock %}
+
+{% set lists = listit.plugin.lists.getAllLists() %}
+
+{% set data = [] %}
+{% for list in lists %}
+    {% set data = data|merge([{
+        id: list.handle,
+        title: list.name,
+        url: url('listit/lists/'~list.handle),
+        handle: list.handle,
+        element: list.displayElementType,
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        {
+            name: '__slot:title',
+            title: Craft.t('listit', 'Name'),
+        },
+        {
+            name: '__slot:handle',
+            title: Craft.t('listit', 'Handle'),
+        },
+        {
+            name: 'element',
+            title: Craft.t('listit', 'Element'),
+        },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        padding: true,
+        container: '#lists-vue-admin-table',
+        deleteAction: 'listit/list/delete-list',
+        deleteConfirmationMessage: 'Are you sure you want to delete {name} and all subscribers?',
+        emptyMessage: Craft.t('listit', 'No lists exist yet.'),
+        tableData: {{ data|json_encode|raw }}
+    });
+{% endjs %}
+
+
+
+
+
+
+
+

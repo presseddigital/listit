@@ -1,0 +1,83 @@
+{% import "_includes/forms" as forms %}
+
+{% set handle = value.handle ?? '' %}
+{% set custom = value.custom ?? '' %}
+{% set opacity = value.opacity ?? 100 %}
+
+<div id="{{ id }}" class="listit--palette flex">
+
+	{% if field.palette|length %}
+
+		<div>
+
+			<ul class="listit--palette-colors" data-listit-palette-colors>
+
+				{% for paletteColor in field.palette %}
+
+					{% set class = [
+						'listit--palette-color',
+						craft.listit.colors.hexIsTransparent(paletteColor.color) ? 'listit--palette-colorIsTransparent' : null,
+						handle == paletteColor.handle ? 'listit--palette-colorIsSelected' : null,
+					]|filter|join(' ') %}
+
+					{% set processedColor = field.allowOpacity and opacity < 100 ? craft.listit.colors.hexToRgba(paletteColor.color, opacity) : paletteColor.color %}
+
+					<li class="{{ class }}" title="{{ paletteColor.label }}" data-handle="{{ paletteColor.handle }}" data-color="{{ paletteColor.color }}" style="background:{{ processedColor }};" data-listit-palette-color>
+					</li>
+
+				{% endfor %}
+
+			</ul>
+
+			<input id="{{ id }}-handle" type="hidden" name="{{ name }}[handle]" value="{{ handle }}">
+
+		</div>
+
+	{% else %}
+
+		<input id="{{ id }}-handle" type="hidden" name="{{ name }}[handle]" value="{{ handle }}">
+
+	{% endif %}
+
+
+	{% if field.allowCustomColor %}
+
+		{% set processedColor = custom and field.allowOpacity and opacity < 100 ? craft.listit.colors.hexToRgba(custom, opacity) : custom %}
+
+		<div class="listit--palette-customColor{{ processedColor ? ' listit--palette-colorIsSelected' }}" data-listit-palette-custom>
+			{{ forms.text({
+				id: id~'-custom',
+				name: name~'[custom]',
+				placeholder: '#D65B4B',
+				value: custom
+			}) }}
+			<div class="listit--palette-customColorSwatch" data-color="{{ custom }}" style="background:{{ processedColor }};" data-listit-palette-custom-color>
+			</div>
+		</div>
+
+	{% else %}
+
+		<input id="{{ id }}-custom"  type="hidden" name="{{ name }}[custom]" value="" />
+
+	{% endif %}
+
+
+	{% if field.allowOpacity %}
+
+		<div class="listit--palette-opacity" data-listit-palette-opacity>
+			<input id="{{ id }}-opacity" class="text" type="number" name="{{ name }}[opacity]" value="{{ opacity }}" min="1" max="100" novalidate/>
+		</div>
+
+	{% else %}
+
+		<input id="{{ id }}-opacity" type="hidden" name="{{ name }}[opacity]" value="100" />
+
+	{% endif %}
+
+</div>
+
+{% if value and value.hasErrors() %}
+	{% for error in value.getErrors() %}
+		{{ forms.errorList(error) }}
+	{% endfor %}
+{% endif %}

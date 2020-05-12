@@ -30,6 +30,8 @@ class Subscription extends Model
     public $dateUpdated;
     public $uid;
 
+    public $elementType;
+
     // Static Methods
     // =========================================================================
 
@@ -56,8 +58,7 @@ class Subscription extends Model
         $rules = parent::defineRules();
         $rules[] = [['id', 'subscriberId', 'siteId', 'elementId'], 'number', 'integerOnly' => true ];
         $rules[] = [['subscriberId', 'siteId', 'list'], 'required'];
-        // $rules[] = [['elementId'], 'validateSubscriberId'];
-        // $rules[] = [['elementId'], 'validateElementId'];
+        $rules[] = [['elementId'], 'validateElement'];
         return $rules;
     }
 
@@ -74,18 +75,56 @@ class Subscription extends Model
         }
     }
 
-    // public function validateElementId()
-    // {
-    //     if($this->list && $this->elementId)
-    //     {
-    //         $element = Craft::$app->getElements()->getElementById((int)$this->elementId);
-    //         if(!$element)
-    //         {
-    //             $this->addError('elementId', Craft::t('Element not found'));
-    //             return;
-    //         }
-    //     }
-    // }
+    public function validateElement()
+    {
+        if(!$this->list) return;
+
+        $list = Listit::$plugin->getLists()->getListByHandle($this->list);
+        if(!$list) return;
+
+        if($list->elementType)
+        {
+            // Element must exist and match supplied type
+            $element = Craft::$app->getElements()->getElementById($this->elementId, $list->elementType);
+            if(!$element)
+            {
+                $this->addError('elementId', Listit::t('Please supply a valid {element}', [
+                    'element' => strtolower($list->displayElementType)
+                ]));
+                return;
+            }
+        }
+        else
+        {
+            // Element must not exist
+            if($this->elementId)
+            {
+                $this->addError('elementId', Listit::t('You cannot use an element with this list'));
+            }
+        }
+    }
+
+    public function setElementType(string $elementType)
+    {
+        $this->elementType = $elementType;
+    }
+
+    public function getElementType()
+    {
+        if($this->elementType !== null)
+        {
+            return $this->elementType;
+        }
+
+        $element = $this->getElement();
+        if(!$element)
+        {
+            return $this->elementType = false;
+        }
+
+        return $this->elementType = get_class($element);
+    }
+
 
     public function beforeValidate()
     {
@@ -97,13 +136,23 @@ class Subscription extends Model
         return parent::beforeValidate();
     }
 
+    public function setSubscriber(User $user = null)
+    {
+        $this->_subscriber = $user;
+    }
+
     public function getSubscriber()
     {
         if($this->_subscriber !== null)
         {
             return $this->_subscriber;
         }
-        return $this->_subscriber = Craft::$app->getUsers()->getUserById($this->subscriberId);
+        return $this->_subscriber = Craft::$app->getUsers()->getUserById((int)$this->subscriberId);
+    }
+
+    public function setElement(ElementInterface $element = null)
+    {
+        $this->_element = $element;
     }
 
     public function getElement()
@@ -112,6 +161,12 @@ class Subscription extends Model
         {
             return $this->_element;
         }
-        return $this->_element = Craft::$app->getElements()->getElementById($this->elementId);
+
+        if(!$this->elementId)
+        {
+            return $this->_element = false;
+        }
+
+        return $this->_element = Craft::$app->getElements()->getElementById((int)$this->elementId);
     }
 }
