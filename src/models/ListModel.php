@@ -26,24 +26,6 @@ class ListModel extends Model
     // Public Methods
     // =========================================================================
 
-    public static function subscriptions()
-    {
-        return Subscription::find()
-            ->list($this->handle);
-    }
-
-    public static function subscribers()
-    {
-        return Subscription::findSubscribers()
-            ->list($this->handle);
-    }
-
-    public static function elements()
-    {
-        return Subscription::findElements()
-            ->list($this->handle);
-    }
-
     public function rules()
     {
         return [
@@ -69,7 +51,26 @@ class ListModel extends Model
 
     public function getTotalSubscriptions()
     {
-        return self::subscriptions()->count();
+        return self::findSubscriptions()
+            ->count();
+    }
+
+    public function findSubscriptions()
+    {
+        return Subscription::find()
+            ->list($this->handle);
+    }
+
+    public function findSubscribers()
+    {
+        return Subscription::findSubscribers()
+            ->list($this->handle);
+    }
+
+    public function findElements()
+    {
+        return Subscription::findElements()
+            ->list($this->handle);
     }
 
 }

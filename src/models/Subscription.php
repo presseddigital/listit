@@ -98,7 +98,7 @@ class Subscription extends Model
             if(!$element)
             {
                 $this->addError('elementId', Listit::t('Please supply a valid {element}', [
-                    'element' => strtolower($list->displayElementType)
+                    'element' => strtolower($list->elementTypeLabel)
                 ]));
                 return;
             }
