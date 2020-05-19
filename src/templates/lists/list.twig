@@ -35,9 +35,9 @@
 
     new Craft.VueAdminTable({
         columns: columns,
-        perPage: 1,
+        perPage: 40,
         container: '#list-vue-admin-table',
-        deleteAction: 'listit/list/delete-subscription',
+        deleteAction: 'listit/list/unsubscribe',
         deleteConfirmationMessage: 'Are you sure you want to delete this subscription?',
         emptyMessage: Craft.t('listit', 'No subscriptions exist yet.'),
         tableDataEndpoint: 'listit/list/subscriptions?list={{ handle }}',

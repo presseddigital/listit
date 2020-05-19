@@ -44,8 +44,6 @@
             }) }}
         #}
 
-        <hr>
-
         {{ forms.textField({
             label: 'Plugin Name'|t('listit'),
             instructions: 'Override the plugin name for this install'|t('listit'),
@@ -54,6 +52,7 @@
             placeholder: 'Colorit'|t('listit'),
             value: settings.pluginNameOverride,
             errors: settings.getErrors('pluginNameOverride'),
+            first: true,
         }) }}
 
      	{{ forms.lightswitchField({

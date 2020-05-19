@@ -85,6 +85,9 @@ class Listit extends Plugin
                 'listit:deleteOtherUsersSubscriptions' => [
                     'label' => self::t('Delete other users subcriptions'),
                 ],
+                'listit:deleteLists' => [
+                    'label' => self::t('Delete lists'),
+                ],
             ];
         });
 

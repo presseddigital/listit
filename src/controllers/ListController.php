@@ -22,6 +22,55 @@ class ListController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function actionSubscribe()
+    {
+        $this->requireLogin();
+
+        // Check subscriber permission
+        $subscriber = $this->_getSubscriber();
+        if($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id)
+        {
+            $this->requirePermission('listit:editOtherUsersSubscriptions');
+        }
+
+        // Create subscription
+        $subscription = new Subscription();
+        $subscription->list = $this->_getList();
+        $subscription->subscriberId = $this->_getSubscriber()->id ?? null;
+        $subscription->siteId = $this->_getSite()->id ?? null;
+        $subscription->elementId = $this->_getElement()->id ?? null;
+        $subscription->metadata = Craft::$app->getRequest()->getBodyParam('metadata', []);
+
+        // Save subscription
+        if (!Listit::$plugin->getSubscriptions()->saveSubscription($subscription))
+        {
+            return $this->_handleSubscriptionFailure($subscription, Craft::t('listit', 'Subscription could not be saved'));
+        }
+        return $this->_handleSubscriptionSuccess($subscription);
+    }
+
+    public function actionUnsubscribe()
+    {
+        $this->requireLogin();
+
+        // Get subscription
+        $subscription = $this->_getSubscription();
+
+        // Can delete
+        if($subscription->subscriberId != Craft::$app->getUser()->getIdentity()->id)
+        {
+            $this->requirePermission('listit:deleteOtherUsersSubscriptions');
+        }
+
+        // Delete subscription
+        if (!Listit::$plugin->getSubscriptions()->deleteSubscription($subscription))
+        {
+            return $this->_handleSubscriptionFailure($subscription, Craft::t('listit', 'Subscription could not be deleted'));
+        }
+
+        return $this->_handleSubscriptionSuccess();
+    }
+
     public function actionSubscriptions()
     {
         $this->requireAcceptsJson();
@@ -78,53 +127,28 @@ class ListController extends Controller
         ]);
     }
 
-    public function actionSubscribe()
+    public function actionDeleteList()
     {
         $this->requireLogin();
-
-        // Check subscriber permission
-        $subscriber = $this->_getSubscriber();
-        if($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id)
-        {
-            $this->requirePermission('listit:editOtherUsersSubscriptions');
-        }
-
-        // Create subscription
-        $subscription = new Subscription();
-        $subscription->list = $this->_getList();
-        $subscription->subscriberId = $this->_getSubscriber()->id ?? null;
-        $subscription->siteId = $this->_getSite()->id ?? null;
-        $subscription->elementId = $this->_getElement()->id ?? null;
-        $subscription->metadata = Craft::$app->getRequest()->getBodyParam('metadata', []);
-
-        // Save subscription
-        if (!Listit::$plugin->getSubscriptions()->saveSubscription($subscription))
-        {
-            return $this->_failureResponse($subscription, Craft::t('listit', 'Subscription could not be saved'));
-        }
-        return $this->_successResponse($subscription);
-    }
-
-    public function actionUnsubscribe()
-    {
-        $this->requireLogin();
-
-        // Get subscription
-        $subscription = $this->_getSubscription();
 
         // Can delete
-        if($subscription->subscriberId != Craft::$app->getUser()->getIdentity()->id)
+        $this->requirePermission('listit:deleteLists');
+        $handle = Craft::$app->getRequest()->getRequiredBodyParam('id');
+
+        // Delete list
+        if (!Listit::$plugin->getLists()->deleteListByHandle($handle))
         {
-            $this->requirePermission('listit:deleteOtherUsersSubscriptions');
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('listit', 'List could not be deleted'),
+                'errors' => [],
+            ]);
         }
 
-        // Delete subscription
-        if (!Listit::$plugin->getSubscriptions()->deleteSubscription($subscription))
-        {
-            return $this->_failureResponse($subscription, Craft::t('listit', 'Subscription could not be deleted'));
-        }
-
-        return $this->_successResponse();
+        return $this->asJson([
+            'success' => true,
+            'message' => Craft::t('listit', 'List deleted'),
+        ]);
     }
 
     // Private Methods
@@ -132,10 +156,10 @@ class ListController extends Controller
 
     private function _getSubscription()
     {
-        $subscriptionId = Craft::$app->getRequest()->getBodyParam('subscriptionId');
+        $subscriptionId = Craft::$app->getRequest()->getBodyParam('subscriptionId') ?? Craft::$app->getRequest()->getBodyParam('id');
         if($subscriptionId)
         {
-            $subscription = Listit::$plugin->getSubscriptions()->getSubscritionById((int)$subscriptionId);
+            $subscription = Listit::$plugin->getSubscriptions()->getSubscriptionById((int)$subscriptionId);
         }
         else
         {
@@ -196,14 +220,14 @@ class ListController extends Controller
         return null;
     }
 
-    private function _successResponse($subscription = null, string $message = '')
+    private function _handleSubscriptionSuccess($subscription = null, string $message = '')
     {
         if (Craft::$app->getRequest()->getAcceptsJson())
         {
             return $this->asJson([
                 'success' => true,
                 'message' => $message,
-                'subscription' => $subscription->toArray() ?? [],
+                'subscription' => $subscription ? $subscription->toArray() : [],
             ]);
         }
 
@@ -216,14 +240,14 @@ class ListController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    private function _failureResponse($subscription = null, string $error = '')
+    private function _handleSubscriptionFailure($subscription = null, string $error = '')
     {
         if (Craft::$app->getRequest()->getAcceptsJson())
         {
             return $this->asJson([
                 'success' => false,
                 'error' => $error,
-                'errors' => $subscription->getErrors() ?? [],
+                'errors' => $subscription ? $subscription->getErrors() : [],
             ]);
         }
 

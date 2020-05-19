@@ -5,6 +5,7 @@ use presseddigital\listit\Listit;
 use presseddigital\listit\db\Table;
 use presseddigital\listit\models\Subscription;
 use presseddigital\listit\models\ListModel;
+use presseddigital\listit\records\Subscription as SubscriptionRecord;
 
 use Craft;
 use craft\base\Component;
@@ -60,10 +61,10 @@ class Lists extends Component
 
     public function deleteListByHandle(string $handle, int $siteId = null)
     {
-        // TODO: @sam - Delete all subscriptions logic
-
-
-        return true;
+        return (bool)SubscriptionRecord::deleteAll([
+            'list' => $handle,
+            'siteId' => $siteId ?? Craft::$app->getSites()->getCurrentSite()->id
+        ]);
     }
 
     // Private Methods

@@ -24,7 +24,7 @@
         url: url('listit/lists/'~list.handle),
         subscribers: list.totalSubscriptions,
         handle: list.handle,
-        element: list.elementTypeLabel,
+        element: list.elementType ? list.elementTypeLabel : 'None',
     }]) %}
 {% endfor %}
 
@@ -33,8 +33,8 @@
         columns: [
             { name: '__slot:title', title: Craft.t('listit', 'Name') },
             { name: '__slot:handle', title: Craft.t('listit', 'Handle') },
-            { name: 'subscribers', title: 'Subscribers' },
             { name: 'element', title: Craft.t('listit', 'Element Type') },
+            { name: 'subscribers', title: 'Subscribers' },
         ],
         padding: true,
         container: '#lists-vue-admin-table',
