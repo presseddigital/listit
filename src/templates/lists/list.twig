@@ -41,15 +41,9 @@
         deleteConfirmationMessage: 'Are you sure you want to delete this subscription?',
         emptyMessage: Craft.t('listit', 'No subscriptions exist yet.'),
         tableDataEndpoint: 'listit/list/subscriptions?list={{ handle }}',
+        onLoaded: function(data) { new Craft.ElementThumbLoader().load($(this.$el)); }
     });
 
-    // TODO: @sam - Setup ElementThumbLoader once vue events exposed to vanilla js
-    //     : https://github.com/craftcms/cms/issues/6063
-    //
-    // document.on('data', function(e) {
-    //     console.log(e);
-    // });
-    // new Craft.ElementThumbLoader().load($('#list-vue-admin-table'));
 {% endjs %}
 
 

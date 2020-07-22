@@ -41,7 +41,8 @@
         deleteAction: 'listit/list/delete-list',
         deleteConfirmationMessage: 'Are you sure you want to delete {name} and all subscribers?',
         emptyMessage: Craft.t('listit', 'No lists exist yet.'),
-        tableData: {{ data|json_encode|raw }}
+        tableData: {{ data|json_encode|raw }},
+        onLoaded: function(data) { new Craft.ElementThumbLoader().load($(this.$el)); }
     });
 {% endjs %}
 
