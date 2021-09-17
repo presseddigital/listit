@@ -30,7 +30,7 @@ class Subscriptions extends Component
         return $query->one();
     }
 
-    public function saveSubscription(Subscription $subscriptionModel, bool $runValidation = true, $surpressEvents = false)
+    public function saveSubscription(Subscription $subscriptionModel, bool $runValidation = true, bool $surpressEvents = false)
     {
         $isNewSubscription = !$subscriptionModel->id;
 
@@ -91,7 +91,7 @@ class Subscriptions extends Component
         return true;
     }
 
-    public function deleteSubscription(Subscription $subscription, $surpressEvents = false): bool
+    public function deleteSubscription(Subscription $subscription, bool $surpressEvents = false): bool
     {
         $subscriptionRecord = SubscriptionRecord::findOne($subscription->id);
         if(!$subscriptionRecord)
@@ -113,7 +113,7 @@ class Subscriptions extends Component
         return $result;
     }
 
-    public function deleteSubscriptionById(int $id, $surpressEvents = false): bool
+    public function deleteSubscriptionById(int $id, bool $surpressEvents = false): bool
     {
         $subscription = $this->getSubscriptionById($id);
         if(!$subscription)
