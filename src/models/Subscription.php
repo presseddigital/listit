@@ -13,13 +13,7 @@ use craft\helpers\Json;
 
 class Subscription extends Model
 {
-    // Private Properties
-    // =========================================================================
-
-    private $_subscriber;
-    private $_element;
-
-    // Public Properties
+    // Properties
     // =========================================================================
 
     public $id;
@@ -27,12 +21,16 @@ class Subscription extends Model
     public $elementId;
     public $list;
     public $siteId;
-    public $metadata;
     public $dateCreated;
     public $dateUpdated;
     public $uid;
 
-    public $elementType;
+    private $_metadata;
+
+    private $_elementType;
+    private $_subscriber;
+    private $_element;
+
 
     // Static Methods
     // =========================================================================
@@ -65,11 +63,13 @@ class Subscription extends Model
         {
             $this->siteId = Craft::$app->getSites()->getPrimarySite()->id;
         }
+    }
 
-        if ($this->metadata !== null)
-        {
-            $this->metadata = Json::decode($this->metadata, true);
-        }
+    public function attributes(): array
+    {
+        $names = parent::attributes();
+        $names[] = 'metadata';
+        return $names;
     }
 
     public function validateElement()
@@ -79,14 +79,14 @@ class Subscription extends Model
         $list = Listit::$plugin->getLists()->getListByHandle($this->list);
         if(!$list) return;
 
-        if($list->elementType)
+        if($list->getElementType())
         {
             // Element must exist and match supplied type
-            $element = Craft::$app->getElements()->getElementById($this->elementId, $list->elementType);
+            $element = Craft::$app->getElements()->getElementById($this->elementId, $list->getElementType());
             if(!$element)
             {
                 $this->addError('elementId', Listit::t('Please supply a valid {element}', [
-                    'element' => strtolower($list->elementTypeLabel)
+                    'element' => strtolower($list->getElementTypeLabel())
                 ]));
                 return;
             }
@@ -101,30 +101,40 @@ class Subscription extends Model
         }
     }
 
+    public function getMetadata()
+    {
+        return $this->_metadata;
+    }
+
+    public function setMetadata($metadata)
+    {
+        $this->_metadata = Json::decodeIfJson($metadata, true);
+    }
+
     public function setElementType(string $elementType)
     {
-        $this->elementType = $elementType;
+        $this->_elementType = $elementType;
     }
 
     public function getElementType()
     {
-        if($this->elementType !== null)
+        if($this->_elementType !== null)
         {
-            return $this->elementType;
+            return $this->_elementType;
         }
 
         $element = $this->getElement();
         if(!$element)
         {
-            return $this->elementType = false;
+            return $this->_elementType = false;
         }
 
-        return $this->elementType = get_class($element);
+        return $this->_elementType = get_class($element);
     }
 
     public function getDisplayElementType()
     {
-        return $this->elementType ? ucwords(App::humanizeClass($this->elementType)) : '-';
+        return $this->_elementType ? ucwords(App::humanizeClass($this->_elementType)) : '-';
     }
 
     public function beforeValidate()
@@ -163,11 +173,11 @@ class Subscription extends Model
             return $this->_element;
         }
 
-        if(!$this->elementId)
+        if($this->elementId)
         {
-            return $this->_element = false;
+            return $this->_element = Craft::$app->getElements()->getElementById((int)$this->elementId);
         }
 
-        return $this->_element = Craft::$app->getElements()->getElementById((int)$this->elementId);
+        return $this->_element = false;
     }
 }

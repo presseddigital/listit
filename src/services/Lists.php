@@ -74,7 +74,7 @@ class Lists extends Component
     {
         return new ListModel([
             'handle' => $subscription->list,
-            'elementType' => $subscription->elementType ?? false
+            'elementType' => $subscription->getElementType() ?? false
         ]);
     }
 

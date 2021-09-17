@@ -30,10 +30,11 @@ class Settings extends Model
         ];
     }
 
-public function setLists($lists)
-{
-	return $lists;
-}
+    public function setLists($lists)
+    {
+    	return $lists;
+    }
+
     public function getLists()
     {
     	return [
