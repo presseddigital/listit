@@ -44,6 +44,11 @@ class ListModel extends Model
         return $this->_name ?? StringHelper::labelize($this->handle);
     }
 
+    public function getElementType()
+    {
+        return $this->elementType;
+    }
+
     public function getElementTypeLabel()
     {
         return $this->elementType ? ucwords(App::humanizeClass($this->elementType)) : '';
