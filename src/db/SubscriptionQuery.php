@@ -435,19 +435,27 @@ class SubscriptionQuery extends Query
         return null;
     }
 
+    public function elements($db = null)
+    {
+        if(!$elementType = $this->_determineElementType())
+        {
+            return [];
+        }
+        return $this->_elementsQuery($elementType)->all();
+    }
+
     public function elementIds($db = null)
     {
-        return $this->_elementsQuery()->ids();
+        if(!$elementType = $this->_determineElementType())
+        {
+            return [];
+        }
+        return $this->_elementsQuery($elementType)->ids();
     }
 
     public function allElements($db = null)
     {
         return $this->elements($db);
-    }
-
-    public function elements($db = null)
-    {
-        return $this->_elementsQuery()->all();
     }
 
     public function subscriberIds($db = null)
@@ -486,15 +494,9 @@ class SubscriptionQuery extends Query
         return $subscribers;
     }
 
-    private function _elementsQuery(): Query
+    private function _elementsQuery(string $elementType): Query
     {
-        $elementType = $this->_determineElementType();
-        if(!$elementType)
-        {
-            throw new InvalidArgumentException('Invalid element type');
-        }
-
-        $elements = $elementType::find()
+        $query = $elementType::find()
             ->limit($this->limit)
             ->andWhere([
                 'in',
@@ -504,10 +506,10 @@ class SubscriptionQuery extends Query
 
         if($this->elementCriteria)
         {
-            Craft::configure($elements, $this->elementCriteria);
+            Craft::configure($query, $this->elementCriteria);
         }
 
-        return $elements;
+        return $query;
     }
 
     private function _createSubscriptions(array $rows)
@@ -606,12 +608,17 @@ class SubscriptionQuery extends Query
 
     private function _determineElementType()
     {
-        if($this->elementType)
+        if($this->elementType !== null)
         {
             return $this->elementType;
         }
 
         $list = Listit::$plugin->getLists()->getListByHandle($this->list);
+        if(!$list)
+        {
+            return false;
+        }
+
         return $list->elementType ?? null;
     }
 
