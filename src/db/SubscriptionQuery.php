@@ -15,6 +15,7 @@ use craft\helpers\ArrayHelper;
 use craft\base\ElementInterface;
 use craft\models\Site;
 use craft\elements\User;
+use craft\elements\db\ElementQueryInterface;
 use craft\elements\db\UserQuery;
 use yii\base\InvalidArgumentException;
 
