@@ -7,6 +7,7 @@ use presseddigital\listit\events\SubscriptionEvent;
 
 use Craft;
 use craft\base\Component;
+use yii\base\InvalidArgumentException;
 
 class Subscriptions extends Component
 {
