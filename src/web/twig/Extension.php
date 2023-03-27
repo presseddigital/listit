@@ -6,7 +6,6 @@ use presseddigital\listit\helpers\StringHelper;
 use presseddigital\listit\web\twig\ListitVariable;
 
 use craft\helpers\App;
-
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
@@ -49,7 +48,6 @@ class Extension extends AbstractExtension implements GlobalsInterface
     {
         return [
             new TwigFilter('humanizeClass', [App::class, 'humanizeClass']),
-            new TwigFilter('labelize', [StringHelper::class, 'labelize']),
         ];
     }
 
