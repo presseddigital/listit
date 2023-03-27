@@ -8,7 +8,6 @@ use presseddigital\listit\helpers\ElementHelper;
 
 use Craft;
 use craft\db\Query;
-use craft\elements\db\ElementQueryInterface;
 use craft\db\Table as CraftTable;
 use craft\db\QueryAbortedException;
 use craft\helpers\Db;
@@ -16,6 +15,7 @@ use craft\helpers\ArrayHelper;
 use craft\base\ElementInterface;
 use craft\models\Site;
 use craft\elements\User;
+use craft\elements\db\UserQuery;
 use yii\base\InvalidArgumentException;
 
 class SubscriptionQuery extends Query
