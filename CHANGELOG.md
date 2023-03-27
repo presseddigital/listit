@@ -1,5 +1,11 @@
 # Listit Changelog
 
+## 3.0.1 - 2023-03-27
+
+### Changed
+- Add / fix some use statements
+- Remove unused conflicting labelize filter
+
 ## 3.0.0 - 2022-12-07
 
 ### Changed
