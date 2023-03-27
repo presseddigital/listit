@@ -8,7 +8,7 @@ use presseddigital\listit\helpers\ElementHelper;
 
 use Craft;
 use craft\db\Query;
-use craft\db\ElementQueryInterface;
+use craft\elements\db\ElementQueryInterface;
 use craft\db\Table as CraftTable;
 use craft\db\QueryAbortedException;
 use craft\helpers\Db;
