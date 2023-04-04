@@ -16,7 +16,7 @@ class ListController extends Controller
     // Protected Properties
     // =========================================================================
 
-    protected $allowAnonymous = [];
+    protected array|int|bool $allowAnonymous = [];
 
     // Public Methods
     // =========================================================================
