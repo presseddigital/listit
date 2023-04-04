@@ -1,10 +1,10 @@
 <?php
+
 namespace presseddigital\listit\controllers;
 
-use presseddigital\listit\Listit;
-
-use Craft;
 use craft\web\Controller;
+
+use presseddigital\listit\Listit;
 
 class SettingsController extends Controller
 {

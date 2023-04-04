@@ -1,8 +1,8 @@
 <?php
+
 namespace presseddigital\listit\web\twig;
 
 use presseddigital\listit\Listit;
-use presseddigital\listit\web\twig\ListitVariableTrait;
 
 use yii\base\Behavior;
 
@@ -26,5 +26,4 @@ class CraftVariableBehavior extends Behavior
         parent::init();
         $this->listit = Listit::$plugin;
     }
-
 }

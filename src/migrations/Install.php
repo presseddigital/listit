@@ -1,12 +1,12 @@
 <?php
+
 namespace presseddigital\listit\migrations;
 
-use presseddigital\listit\db\Table;
-
-use Craft;
-use craft\db\Table as CraftTable;
 use craft\db\Migration;
+
+use craft\db\Table as CraftTable;
 use craft\helpers\MigrationHelper;
+use presseddigital\listit\db\Table;
 
 class Install extends Migration
 {
@@ -37,8 +37,7 @@ class Install extends Migration
 
     public function safeDown()
     {
-        if ($this->db->tableExists(Table::SUBSCRIPTIONS))
-        {
+        if ($this->db->tableExists(Table::SUBSCRIPTIONS)) {
             MigrationHelper::dropTable(Table::SUBSCRIPTIONS, $this);
         }
     }

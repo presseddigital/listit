@@ -1,34 +1,32 @@
 <?php
+
 namespace presseddigital\listit\db;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\db\Table;
-use presseddigital\listit\models\Subscription;
-use presseddigital\listit\helpers\ElementHelper;
-
 use Craft;
-use craft\db\Query;
-use craft\db\Table as CraftTable;
-use craft\db\QueryAbortedException;
-use craft\helpers\Db;
-use craft\helpers\ArrayHelper;
 use craft\base\ElementInterface;
-use craft\models\Site;
-use craft\elements\User;
+use craft\db\Query;
+
+use craft\db\Table as CraftTable;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\db\UserQuery;
+use craft\elements\User;
+use craft\helpers\Db;
+use craft\models\Site;
+use presseddigital\listit\helpers\ElementHelper;
+use presseddigital\listit\Listit;
+use presseddigital\listit\models\Subscription;
 use yii\base\InvalidArgumentException;
 
 class SubscriptionQuery extends Query
 {
-	// Properties
-	// =========================================================================
+    // Properties
+    // =========================================================================
 
-	public $query;
+    public $query;
 
     protected $defaultOrderBy = ['subscriptions.dateCreated' => SORT_DESC];
 
-	public $id;
+    public $id;
     public $list;
     public $subscriberId;
     public $elementId;
@@ -51,16 +49,15 @@ class SubscriptionQuery extends Query
     // Public Methods
     // =========================================================================
 
-	public function __set($name, $value)
+    public function __set($name, $value)
     {
-        switch ($name)
-        {
+        switch ($name) {
             case 'subscriber':
             case 'element':
             case 'site':
             {
-            	$this->$name($value);
-            	break;
+                $this->$name($value);
+                break;
             }
             default:
             {
@@ -87,20 +84,13 @@ class SubscriptionQuery extends Query
 
     public function subscriber($value)
     {
-        if($value === null || !$value)
-    	{
-    		$this->subscriberId = null;
-    	}
-    	else if($value instanceof User)
-    	{
-    		$this->subscriberId = $value->id;
-    	}
-    	else if($value instanceof UserQuery)
-    	{
-    		$this->subscriberId = $value->ids();
-    	}
-        else
-        {
+        if ($value === null || !$value) {
+            $this->subscriberId = null;
+        } elseif ($value instanceof User) {
+            $this->subscriberId = $value->id;
+        } elseif ($value instanceof UserQuery) {
+            $this->subscriberId = $value->ids();
+        } else {
             $this->subscriberId = $value;
         }
 
@@ -119,22 +109,15 @@ class SubscriptionQuery extends Query
         return $this;
     }
 
-	public function element($value)
+    public function element($value)
     {
-    	if ($value !== null && (is_bool($value) || !$value))
-    	{
-    		$this->elementId = $value ? ':notempty:' : ':empty:';
-    	}
-    	else if ($value instanceof ElementInterface)
-    	{
-    		$this->elementId = $value->id;
-    	}
-    	else if ($value instanceof ElementQueryInterface)
-    	{
-    		$this->elementId = $value->ids();
-    	}
-        else
-        {
+        if ($value !== null && (is_bool($value) || !$value)) {
+            $this->elementId = $value ? ':notempty:' : ':empty:';
+        } elseif ($value instanceof ElementInterface) {
+            $this->elementId = $value->id;
+        } elseif ($value instanceof ElementQueryInterface) {
+            $this->elementId = $value->ids();
+        } else {
             $this->elementId = $value;
         }
 
@@ -155,72 +138,66 @@ class SubscriptionQuery extends Query
 
     public function site($value)
     {
-        switch (true)
-	    {
-        	case $value === '*' || $value === null:
-        	{
-        		$this->siteId = $value;
-        		break;
-        	}
-        	case $value instanceof Site:
-        	{
-        		$this->siteId = $value->id;
-        		break;
-        	}
-        	case (is_numeric($value)):
-        	{
-        		$site = Craft::$app->getSites()->getSiteById($value);
-	            if (!$site) throw new InvalidArgumentException('Invalid site id: ' . $value);
-	            $this->siteId = $site->id;
-        		break;
-        	}
-        	case (is_string($value)):
-        	{
-        		$site = Craft::$app->getSites()->getSiteByHandle($value);
-	            if (!$site) throw new InvalidArgumentException('Invalid site handle: ' . $value);
-	            $this->siteId = $site->id;
-        		break;
-        	}
-        	default:
-        	{
-        		if ($not = (strtolower(reset($value)) === 'not'))
-        		{
-        		    array_shift($value);
-        		}
-        		$this->siteId = [];
-        		foreach (Craft::$app->getSites()->getAllSites() as $site)
-        		{
-        		    if (in_array($site->handle, $value, true) === !$not)
-        		    {
-        		        $this->siteId[] = $site->id;
-        		    }
-        		}
-        		if (empty($this->siteId))
-        		{
-        		    throw new InvalidArgumentException('Invalid site param: [' . ($not ? 'not, ' : '') . implode(', ', $value) . ']');
-        		}
-        		break;
-        	}
+        switch (true) {
+            case $value === '*' || $value === null:
+            {
+                $this->siteId = $value;
+                break;
+            }
+            case $value instanceof Site:
+            {
+                $this->siteId = $value->id;
+                break;
+            }
+            case (is_numeric($value)):
+            {
+                $site = Craft::$app->getSites()->getSiteById($value);
+                if (!$site) {
+                    throw new InvalidArgumentException('Invalid site id: ' . $value);
+                }
+                $this->siteId = $site->id;
+                break;
+            }
+            case (is_string($value)):
+            {
+                $site = Craft::$app->getSites()->getSiteByHandle($value);
+                if (!$site) {
+                    throw new InvalidArgumentException('Invalid site handle: ' . $value);
+                }
+                $this->siteId = $site->id;
+                break;
+            }
+            default:
+            {
+                if ($not = (strtolower(reset($value)) === 'not')) {
+                    array_shift($value);
+                }
+                $this->siteId = [];
+                foreach (Craft::$app->getSites()->getAllSites() as $site) {
+                    if (in_array($site->handle, $value, true) === !$not) {
+                        $this->siteId[] = $site->id;
+                    }
+                }
+                if (empty($this->siteId)) {
+                    throw new InvalidArgumentException('Invalid site param: [' . ($not ? 'not, ' : '') . implode(', ', $value) . ']');
+                }
+                break;
+            }
         }
         return $this;
     }
 
     public function siteId($value)
     {
-        if (is_array($value) && strtolower(reset($value)) === 'not')
-        {
+        if (is_array($value) && strtolower(reset($value)) === 'not') {
             array_shift($value);
             $this->siteId = [];
-            foreach (Craft::$app->getSites()->getAllSites() as $site)
-            {
-                if (!in_array($site->id, $value, false))
-                {
+            foreach (Craft::$app->getSites()->getAllSites() as $site) {
+                if (!in_array($site->id, $value, false)) {
                     $this->siteId[] = $site->id;
                 }
             }
-        }
-        else
-        {
+        } else {
             $this->siteId = $value;
         }
         return $this;
@@ -292,14 +269,13 @@ class SubscriptionQuery extends Query
     public function prepare($builder)
     {
         // Ensure there is a list if we are working with elements
-        if((!$this->list || $this->list == '*') && $this->elementCriteria)
-        {
+        if ((!$this->list || $this->list == '*') && $this->elementCriteria) {
             throw new InvalidArgumentException('List required if working with element criteria');
         }
 
         $this->query = (new Query())
             ->from([Table::SUBSCRIPTIONS . ' subscriptions'])
-            ->leftJoin(CraftTable::ELEMENTS.' elements', '[[elements.id]] = [[subscriptions.elementId]]')
+            ->leftJoin(CraftTable::ELEMENTS . ' elements', '[[elements.id]] = [[subscriptions.elementId]]')
             ->andWhere($this->where)
             ->offset($this->offset)
             ->limit($this->limit)
@@ -307,8 +283,7 @@ class SubscriptionQuery extends Query
             ->addParams($this->params);
 
         $select = array_merge((array)$this->select);
-        if(empty($select))
-        {
+        if (empty($select)) {
             $select = [
                 'subscriptions.id' => 'subscriptions.id',
                 'subscriptions.list' => 'subscriptions.list',
@@ -324,84 +299,69 @@ class SubscriptionQuery extends Query
         }
         $this->query->select($select);
 
-        if ($this->distinct)
-        {
+        if ($this->distinct) {
             $this->query->distinct();
         }
 
-        if ($this->id)
-        {
+        if ($this->id) {
             $this->query->andWhere(Db::parseParam('subscriptions.id', $this->id));
         }
 
-        if ($this->list !== '*' && $this->list)
-        {
+        if ($this->list !== '*' && $this->list) {
             $this->query->andWhere(Db::parseParam('subscriptions.list', $this->list));
         }
 
-        if ($this->siteId !== '*')
-        {
-        	$siteId = $this->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
+        if ($this->siteId !== '*') {
+            $siteId = $this->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
             $this->query->andWhere(['subscriptions.siteId' => $siteId]);
         }
 
         // Restrict results by subscriber criteria
         // - fallback to the subscriberId value (if supplied)
-        if ($this->subscriberCriteria)
-        {
+        if ($this->subscriberCriteria) {
             $subscribersQuery = User::find()
                 ->select('subscriptions.subscriberId')
-                ->innerJoin(Table::SUBSCRIPTIONS.' subscriptions', '[[elements.id]] = [[subscriptions.subscriberId]]')
+                ->innerJoin(Table::SUBSCRIPTIONS . ' subscriptions', '[[elements.id]] = [[subscriptions.subscriberId]]')
                 ->limit(null);
             Craft::configure($subscribersQuery, $this->subscriberCriteria);
             $this->query->andWhere(['in', 'subscriptions.subscriberId', $subscribersQuery]);
-        }
-        elseif($this->subscriberId)
-        {
+        } elseif ($this->subscriberId) {
             $this->query->andWhere(Db::parseParam('subscriptions.subscriberId', $this->subscriberId));
         }
 
         // Restrict results by element criteria
         // - fallback to the elementId value (if supplied)
-        if ($this->elementCriteria && $elementType = $this->_determineElementType())
-        {
+        if ($this->elementCriteria && $elementType = $this->_determineElementType()) {
             $elementQuery = $elementType::find()
                 ->select('subscriptions.elementId')
-                ->innerJoin(Table::SUBSCRIPTIONS.' subscriptions', '[[elements.id]] = [[subscriptions.elementId]]')
+                ->innerJoin(Table::SUBSCRIPTIONS . ' subscriptions', '[[elements.id]] = [[subscriptions.elementId]]')
                 ->limit(null);
             Craft::configure($elementQuery, $this->elementCriteria);
             $this->query->andWhere(['in', 'subscriptions.elementId', $elementQuery]);
-        }
-        elseif ($this->elementId)
-        {
+        } elseif ($this->elementId) {
             $this->query->andWhere(Db::parseParam('subscriptions.elementId', $this->elementId));
         }
 
-        if($this->elementType)
-        {
+        if ($this->elementType) {
             $this->query->andWhere(Db::parseParam('elements.type', $this->elementType));
         }
 
         // Dates
-        if ($this->dateCreated)
-        {
+        if ($this->dateCreated) {
             $this->query->andWhere(Db::parseDateParam('subscriptions.dateCreated', $this->dateCreated));
         }
 
-        if ($this->dateUpdated)
-        {
+        if ($this->dateUpdated) {
             $this->query->andWhere(Db::parseDateParam('subscriptions.dateUpdated', $this->dateUpdated));
         }
 
         // Uid
-        if ($this->uid)
-        {
+        if ($this->uid) {
             $this->query->andWhere(Db::parseParam('subscriptions.uid', $this->uid));
         }
 
         // Group By
-        if ($this->groupBy)
-        {
+        if ($this->groupBy) {
             $this->query->groupBy = $this->groupBy;
         }
 
@@ -410,7 +370,9 @@ class SubscriptionQuery extends Query
 
     public function populate($rows)
     {
-        if (empty($rows)) return [];
+        if (empty($rows)) {
+            return [];
+        }
         return $this->_createSubscriptions($rows);
     }
 
@@ -420,7 +382,7 @@ class SubscriptionQuery extends Query
     public function ids($db = null, string $column = 'id')
     {
         $select = $this->select;
-        $this->select = ['subscriptions.'.$column => 'subscriptions.'.$column];
+        $this->select = ['subscriptions.' . $column => 'subscriptions.' . $column];
         $result = parent::column($db);
         $this->select($select);
         return array_unique($result);
@@ -428,8 +390,7 @@ class SubscriptionQuery extends Query
 
     public function one($db = null)
     {
-        if($row = parent::one($db))
-        {
+        if ($row = parent::one($db)) {
             $subscriptions = $this->populate([$row]);
             return reset($subscriptions) ?: null;
         }
@@ -438,8 +399,7 @@ class SubscriptionQuery extends Query
 
     public function elements($db = null)
     {
-        if(!$elementType = $this->_determineElementType())
-        {
+        if (!$elementType = $this->_determineElementType()) {
             return [];
         }
         return $this->_elementsQuery($elementType)->all();
@@ -447,8 +407,7 @@ class SubscriptionQuery extends Query
 
     public function elementIds($db = null)
     {
-        if(!$elementType = $this->_determineElementType())
-        {
+        if (!$elementType = $this->_determineElementType()) {
             return [];
         }
         return $this->_elementsQuery($elementType)->ids();
@@ -484,11 +443,10 @@ class SubscriptionQuery extends Query
             ->andWhere([
                 'in',
                 'elements.id',
-                (clone $this)->select('subscriptions.subscriberId')->subscriberCriteria(null)->limit(null)
+                (clone $this)->select('subscriptions.subscriberId')->subscriberCriteria(null)->limit(null),
             ]);
 
-        if($this->subscriberCriteria)
-        {
+        if ($this->subscriberCriteria) {
             Craft::configure($subscribers, $this->subscriberCriteria);
         }
 
@@ -502,11 +460,10 @@ class SubscriptionQuery extends Query
             ->andWhere([
                 'in',
                 'elements.id',
-                (clone $this)->select('subscriptions.elementId')->elementCriteria(null)->limit(null)
+                (clone $this)->select('subscriptions.elementId')->elementCriteria(null)->limit(null),
             ]);
 
-        if($this->elementCriteria)
-        {
+        if ($this->elementCriteria) {
             Craft::configure($query, $this->elementCriteria);
         }
 
@@ -517,33 +474,26 @@ class SubscriptionQuery extends Query
     {
         $subscriptions = [];
 
-        if ($this->asArray === true)
-        {
-            if ($this->indexBy === null)
-            {
+        if ($this->asArray === true) {
+            if ($this->indexBy === null) {
                 return $rows;
             }
 
-            foreach ($rows as $row)
-            {
-            	$key = is_string($this->indexBy) ? $row[$this->indexBy] : call_user_func($this->indexBy, $row);
+            foreach ($rows as $row) {
+                $key = is_string($this->indexBy) ? $row[$this->indexBy] : call_user_func($this->indexBy, $row);
                 $subscriptions[$key] = $row;
             }
 
             return $subscriptions;
         }
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $subscription = new Subscription($row);
 
-            if ($this->indexBy === null)
-            {
+            if ($this->indexBy === null) {
                 $subscriptions[] = $subscription;
-            }
-            else
-            {
-            	$key = is_string($this->indexBy) ? $subscription->{$this->indexBy} : call_user_func($this->indexBy, $subscription);
+            } else {
+                $key = is_string($this->indexBy) ? $subscription->{$this->indexBy} : call_user_func($this->indexBy, $subscription);
                 $subscriptions[$key] = $subscription;
             }
         }
@@ -557,32 +507,32 @@ class SubscriptionQuery extends Query
     private function _eagerLoadSubscriptionElements(array $subscriptions)
     {
         // Anything to eager-load?
-        if (empty($subscriptions)) return;
+        if (empty($subscriptions)) {
+            return;
+        }
 
         // Build an eager loading map or elements by type
         $eagerLoadingMap = [];
-        foreach ($subscriptions as $subscription)
-        {
+        foreach ($subscriptions as $subscription) {
             // Subscribers
-            if($this->withAll || $this->withSubscribers)
-            {
+            if ($this->withAll || $this->withSubscribers) {
                 $eagerLoadingMap[User::class][] = $subscription->subscriberId;
             }
 
             // Elements
-            if(($this->withAll || $this->withElements) && $subscription->elementType && $subscription->elementId)
-            {
+            if (($this->withAll || $this->withElements) && $subscription->elementType && $subscription->elementId) {
                 $eagerLoadingMap[$subscription->elementType][] = $subscription->elementId;
             }
         }
 
         // Nothing found to eager-load
-        if (empty($eagerLoadingMap)) return;
+        if (empty($eagerLoadingMap)) {
+            return;
+        }
 
         // Load elements indexed by id
         $elementsById = [];
-        foreach ($eagerLoadingMap as $elementType => $elementIds)
-        {
+        foreach ($eagerLoadingMap as $elementType => $elementIds) {
             $elements = $elementType::find()
                 ->id(array_values(array_unique($elementIds)))
                 ->limit(null)
@@ -593,15 +543,12 @@ class SubscriptionQuery extends Query
         }
 
         // Set elements on subscription models
-        foreach($subscriptions as &$subscription)
-        {
-            if(isset($elementsById[$subscription->subscriberId]))
-            {
+        foreach ($subscriptions as &$subscription) {
+            if (isset($elementsById[$subscription->subscriberId])) {
                 $subscription->setSubscriber($elementsById[$subscription->subscriberId]);
             }
 
-            if(isset($elementsById[$subscription->elementId]))
-            {
+            if (isset($elementsById[$subscription->elementId])) {
                 $subscription->setElement($elementsById[$subscription->elementId]);
             }
         }
@@ -609,28 +556,15 @@ class SubscriptionQuery extends Query
 
     private function _determineElementType()
     {
-        if($this->elementType !== null)
-        {
+        if ($this->elementType !== null) {
             return $this->elementType;
         }
 
         $list = Listit::$plugin->getLists()->getListByHandle($this->list);
-        if(!$list)
-        {
+        if (!$list) {
             return false;
         }
 
         return $list->elementType ?? null;
     }
-
-    private function _getElementsByTypeByIds(string $elementType, array $ids)
-    {
-        return $elementType::find()
-            ->id(array_values(array_unique($ids)))
-            ->orderBy(null)
-            ->limit(null)
-            ->offset(null)
-            ->all();
-    }
-
 }

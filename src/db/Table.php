@@ -1,4 +1,5 @@
 <?php
+
 namespace presseddigital\listit\db;
 
 abstract class Table

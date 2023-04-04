@@ -1,11 +1,10 @@
 <?php
+
 namespace presseddigital\listit\web\twig;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\helpers\StringHelper;
-use presseddigital\listit\web\twig\ListitVariable;
-
 use craft\helpers\App;
+
+use presseddigital\listit\Listit;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
@@ -18,8 +17,7 @@ class Extension extends AbstractExtension implements GlobalsInterface
 
     public function getGlobals(): array
     {
-        if (!Listit::$variable)
-        {
+        if (!Listit::$variable) {
             Listit::$variable = new ListitVariable();
         }
 
@@ -60,5 +58,4 @@ class Extension extends AbstractExtension implements GlobalsInterface
     //         new TwigFunction('function', [Helper::class, 'function']),
     //     ];
     // }
-
 }

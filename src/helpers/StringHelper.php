@@ -1,9 +1,10 @@
 <?php
+
 namespace presseddigital\listit\helpers;
 
 class StringHelper extends \craft\helpers\StringHelper
 {
-	// Public Methods
+    // Public Methods
     // =========================================================================
 
     public static function labelize(string $string, bool $onlyUcFirst = false): string
@@ -13,5 +14,3 @@ class StringHelper extends \craft\helpers\StringHelper
         return ucfirst($onlyUcFirst ? strtolower($string) : $string);
     }
 }
-
-

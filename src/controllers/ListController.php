@@ -1,15 +1,14 @@
 <?php
+
 namespace presseddigital\listit\controllers;
 
+use Craft;
+use craft\helpers\AdminTable;
+
+use craft\helpers\Json;
+use craft\web\Controller;
 use presseddigital\listit\Listit;
 use presseddigital\listit\models\Subscription;
-use presseddigital\listit\services\Lists;
-
-use Craft;
-use craft\web\Controller;
-use craft\helpers\AdminTable;
-use craft\helpers\Json;
-use craft\elements\User;
 use yii\web\NotFoundHttpException;
 
 class ListController extends Controller
@@ -28,8 +27,7 @@ class ListController extends Controller
 
         // Check subscriber permission
         $subscriber = $this->_getSubscriber();
-        if($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id)
-        {
+        if ($subscriber && $subscriber->id != Craft::$app->getUser()->getIdentity()->id) {
             $this->requirePermission('listit:editOtherUsersSubscriptions');
         }
 
@@ -42,8 +40,7 @@ class ListController extends Controller
         $subscription->metadata = Craft::$app->getRequest()->getBodyParam('metadata', []);
 
         // Save subscription
-        if (!Listit::$plugin->getSubscriptions()->saveSubscription($subscription))
-        {
+        if (!Listit::$plugin->getSubscriptions()->saveSubscription($subscription)) {
             return $this->_handleSubscriptionFailure($subscription, Craft::t('listit', 'Subscription could not be saved'));
         }
         return $this->_handleSubscriptionSuccess($subscription);
@@ -57,14 +54,12 @@ class ListController extends Controller
         $subscription = $this->_getSubscription();
 
         // Can delete
-        if($subscription->subscriberId != Craft::$app->getUser()->getIdentity()->id)
-        {
+        if ($subscription->subscriberId != Craft::$app->getUser()->getIdentity()->id) {
             $this->requirePermission('listit:deleteOtherUsersSubscriptions');
         }
 
         // Delete subscription
-        if (!Listit::$plugin->getSubscriptions()->deleteSubscription($subscription))
-        {
+        if (!Listit::$plugin->getSubscriptions()->deleteSubscription($subscription)) {
             return $this->_handleSubscriptionFailure($subscription, Craft::t('listit', 'Subscription could not be deleted'));
         }
 
@@ -92,15 +87,13 @@ class ListController extends Controller
         $total = $subscriptions->count();
 
         $rows = [];
-        foreach ($subscriptions->all() as $subscription)
-        {
+        foreach ($subscriptions->all() as $subscription) {
             $subscriber = Craft::$app->getView()->renderTemplate('_elements/element', [
                 'element' => $subscription->subscriber,
             ]);
 
             $element = '';
-            if ($subscription->element)
-            {
+            if ($subscription->element) {
                 $element = Craft::$app->getView()->renderTemplate('_elements/element', [
                     'element' => $subscription->element,
                 ]);
@@ -116,8 +109,8 @@ class ListController extends Controller
                 'element' => $element,
                 'detail' => [
                     'handle' => '<span data-icon="info"></span>',
-                    'content' => '<pre class="pane"><code>'.Json::encode($subscription->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT).'</code></pre>'
-                ]
+                    'content' => '<pre class="pane"><code>' . Json::encode($subscription->toArray(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . '</code></pre>',
+                ],
             ];
         }
 
@@ -136,8 +129,7 @@ class ListController extends Controller
         $handle = Craft::$app->getRequest()->getRequiredBodyParam('id');
 
         // Delete list
-        if (!Listit::$plugin->getLists()->deleteListByHandle($handle))
-        {
+        if (!Listit::$plugin->getLists()->deleteListByHandle($handle)) {
             return $this->asJson([
                 'success' => false,
                 'error' => Craft::t('listit', 'List could not be deleted'),
@@ -157,12 +149,9 @@ class ListController extends Controller
     private function _getSubscription()
     {
         $subscriptionId = Craft::$app->getRequest()->getBodyParam('subscriptionId') ?? Craft::$app->getRequest()->getBodyParam('id');
-        if($subscriptionId)
-        {
+        if ($subscriptionId) {
             $subscription = Listit::$plugin->getSubscriptions()->getSubscriptionById((int)$subscriptionId);
-        }
-        else
-        {
+        } else {
             $subscription = Subscription::find()
                 ->list($this->_getList())
                 ->subscriberId($this->_getSubscriber()->id ?? null)
@@ -171,8 +160,7 @@ class ListController extends Controller
                 ->one();
         }
 
-        if(!$subscription)
-        {
+        if (!$subscription) {
             throw new NotFoundHttpException(Listit::t('Subscription not found'));
         }
 
@@ -186,8 +174,7 @@ class ListController extends Controller
 
     private function _getSubscriber()
     {
-        if($subscriberId = Craft::$app->getRequest()->getBodyParam('subscriberId'))
-        {
+        if ($subscriberId = Craft::$app->getRequest()->getBodyParam('subscriberId')) {
             return Craft::$app->getUsers()->getUserById((int)$subscriberId);
         }
         return Craft::$app->getUser()->getIdentity();
@@ -195,8 +182,7 @@ class ListController extends Controller
 
     private function _getSite()
     {
-        if($siteId = Craft::$app->getRequest()->getBodyParam('siteId'))
-        {
+        if ($siteId = Craft::$app->getRequest()->getBodyParam('siteId')) {
             return Craft::$app->getSites()->getSiteById((int)$siteId);
         }
         return Craft::$app->getSites()->getCurrentSite();
@@ -208,11 +194,9 @@ class ListController extends Controller
         $elementId = $request->getBodyParam('elementId');
         $siteId = $request->getBodyParam('siteId');
 
-        if($elementId)
-        {
+        if ($elementId) {
             $element = Craft::$app->getElements()->getElementById((int)$elementId, $siteId);
-            if(!$element)
-            {
+            if (!$element) {
                 throw new NotFoundHttpException(Listit::t('Element not found'));
             }
             return $element;
@@ -222,8 +206,8 @@ class ListController extends Controller
 
     private function _handleSubscriptionSuccess($subscription = null, string $message = '')
     {
-        if (Craft::$app->getRequest()->getAcceptsJson())
-        {
+        $message = $message ?: Listit::t('Subscription updated.');
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
                 'message' => $message,
@@ -235,15 +219,15 @@ class ListController extends Controller
             'subscription' => $subscription,
         ]);
 
-        Craft::$app->getSession()->setNotice($message ?? Listit::t('Subscription updated.'));
-
+        Craft::$app->getSession()->setNotice($message);
         return $this->redirectToPostedUrl();
     }
 
     private function _handleSubscriptionFailure($subscription = null, string $error = '')
     {
-        if (Craft::$app->getRequest()->getAcceptsJson())
-        {
+        $error = $error ?: Listit::t('Unable to update subscription.');
+
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
             return $this->asJson([
                 'success' => false,
                 'error' => $error,
@@ -255,9 +239,7 @@ class ListController extends Controller
             'subscription' => $subscription,
         ]);
 
-        Craft::$app->getSession()->setError($error ?? Listit::t('Unable to update subscription.'));
-
+        Craft::$app->getSession()->setError($error);
         return null;
     }
-
 }

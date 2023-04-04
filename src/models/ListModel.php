@@ -1,13 +1,11 @@
 <?php
+
 namespace presseddigital\listit\models;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\helpers\StringHelper;
-use presseddigital\listit\models\Subscription;
-
-use Craft;
 use craft\base\Model;
+
 use craft\helpers\App;
+use presseddigital\listit\helpers\StringHelper;
 
 class ListModel extends Model
 {
@@ -15,7 +13,6 @@ class ListModel extends Model
     // =========================================================================
 
     private $_name;
-    private $_subscriptions;
 
     // Public Properties
     // =========================================================================
@@ -63,5 +60,4 @@ class ListModel extends Model
     {
         return Subscription::find()->list($this->handle);
     }
-
 }

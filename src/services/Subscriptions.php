@@ -1,12 +1,13 @@
 <?php
-namespace presseddigital\listit\services;
 
-use presseddigital\listit\models\Subscription;
-use presseddigital\listit\records\Subscription as SubscriptionRecord;
-use presseddigital\listit\events\SubscriptionEvent;
+namespace presseddigital\listit\services;
 
 use Craft;
 use craft\base\Component;
+use presseddigital\listit\events\SubscriptionEvent;
+
+use presseddigital\listit\models\Subscription;
+use presseddigital\listit\records\Subscription as SubscriptionRecord;
 use yii\base\InvalidArgumentException;
 
 class Subscriptions extends Component
@@ -35,30 +36,24 @@ class Subscriptions extends Component
     {
         $isNewSubscription = !$subscriptionModel->id;
 
-        if ($subscriptionModel->id)
-        {
+        if ($subscriptionModel->id) {
             $subscriptionRecord = SubscriptionRecord::findOne($subscriptionModel->id);
-            if (!$subscriptionRecord)
-            {
-                throw new InvalidArgumentException('No subscription exists with the ID “{id}”', ['id' => $subscriptionModel->id]);
+            if (!$subscriptionRecord) {
+                throw new InvalidArgumentException(Craft::t('listit', 'No subscription exists with the ID “{id}”', ['id' => $subscriptionModel->id]));
             }
-        }
-        else
-        {
+        } else {
             $subscriptionRecord = new SubscriptionRecord();
         }
 
-        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_BEFORE_SAVE_SUBSCRIPTION))
-        {
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_BEFORE_SAVE_SUBSCRIPTION)) {
             $event = new SubscriptionEvent([
                 'subscription' => $subscriptionModel,
-                'isNew' => $isNewSubscription
+                'isNew' => $isNewSubscription,
             ]);
             $this->trigger(self::EVENT_BEFORE_SAVE_SUBSCRIPTION, $event);
         }
 
-        if ($runValidation && !$subscriptionModel->validate())
-        {
+        if ($runValidation && !$subscriptionModel->validate()) {
             Craft::info('Subscription could not save due to validation error.', __METHOD__);
             return false;
         }
@@ -69,22 +64,19 @@ class Subscriptions extends Component
         $subscriptionRecord->siteId = $subscriptionModel->siteId;
         $subscriptionRecord->metadata = $subscriptionModel->metadata;
 
-        if (!$subscriptionRecord->save())
-        {
+        if (!$subscriptionRecord->save()) {
             $subscriptionModel->addErrors($subscriptionRecord->getErrors());
             return false;
         }
 
-        if ($isNewSubscription)
-        {
+        if ($isNewSubscription) {
             $subscriptionModel->id = $subscriptionRecord->id;
         }
 
-        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_SAVE_SUBSCRIPTION))
-        {
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_SAVE_SUBSCRIPTION)) {
             $event = new SubscriptionEvent([
                 'subscription' => $subscriptionModel,
-                'isNew' => $isNewSubscription
+                'isNew' => $isNewSubscription,
             ]);
             $this->trigger(self::EVENT_AFTER_SAVE_SUBSCRIPTION, $event);
         }
@@ -95,18 +87,16 @@ class Subscriptions extends Component
     public function deleteSubscription(Subscription $subscription, bool $surpressEvents = false): bool
     {
         $subscriptionRecord = SubscriptionRecord::findOne($subscription->id);
-        if(!$subscriptionRecord)
-        {
+        if (!$subscriptionRecord) {
             return false;
         }
 
         $result = (bool)$subscriptionRecord->delete();
 
-        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_DELETE_SUBSCRIPTION))
-        {
+        if (!$surpressEvents && $this->hasEventHandlers(self::EVENT_AFTER_DELETE_SUBSCRIPTION)) {
             $event = new SubscriptionEvent([
                 'subscription' => $subscription,
-                'isNew' => false
+                'isNew' => false,
             ]);
             $this->trigger(self::EVENT_AFTER_DELETE_SUBSCRIPTION, $event);
         }
@@ -117,11 +107,9 @@ class Subscriptions extends Component
     public function deleteSubscriptionById(int $id, bool $surpressEvents = false): bool
     {
         $subscription = $this->getSubscriptionById($id);
-        if(!$subscription)
-        {
+        if (!$subscription) {
             return false;
         }
         return $this->deleteSubscription($subscription, $surpressEvents);
     }
-
 }

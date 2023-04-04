@@ -1,4 +1,5 @@
 <?php
+
 namespace presseddigital\listit\plugin;
 
 use craft\events\RegisterUrlRulesEvent;
