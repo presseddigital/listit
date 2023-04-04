@@ -388,7 +388,7 @@ class SubscriptionQuery extends Query
         return array_unique($result);
     }
 
-    public function one($db = null)
+    public function one($db = null): mixed
     {
         if ($row = parent::one($db)) {
             $subscriptions = $this->populate([$row]);

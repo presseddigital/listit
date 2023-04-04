@@ -1,5 +1,10 @@
 # Listit Changelog
 
+## 4.0.0 - 2023-04-04
+
+### Added
+- Add support for Craft 4
+
 ## 3.0.3 - 2023-04-04
 
 ### Changed

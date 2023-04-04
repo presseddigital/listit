@@ -56,7 +56,7 @@ class Subscription extends Model
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 

@@ -48,7 +48,7 @@ class Listit extends Plugin
     // Public Properties
     // =========================================================================
 
-    public $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.0';
 
     // Traits
     // =========================================================================
@@ -104,7 +104,7 @@ class Listit extends Plugin
         }
     }
 
-    public function getSettingsResponse()
+    public function getSettingsResponse(): mixed
     {
         return Craft::$app->controller->redirect(UrlHelper::cpUrl('listit/settings'));
     }
@@ -112,7 +112,7 @@ class Listit extends Plugin
     // Protected Methods
     // =========================================================================
 
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?\craft\base\Model
     {
         return new Settings();
     }
