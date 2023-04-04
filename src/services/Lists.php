@@ -1,15 +1,13 @@
 <?php
-namespace presseddigital\listit\services;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\db\Table;
-use presseddigital\listit\models\Subscription;
-use presseddigital\listit\models\ListModel;
-use presseddigital\listit\records\Subscription as SubscriptionRecord;
+namespace presseddigital\listit\services;
 
 use Craft;
 use craft\base\Component;
-use craft\db\Query;
+use presseddigital\listit\models\ListModel;
+
+use presseddigital\listit\models\Subscription;
+use presseddigital\listit\records\Subscription as SubscriptionRecord;
 
 class Lists extends Component
 {
@@ -24,8 +22,7 @@ class Lists extends Component
 
     public function getAllLists(int $siteId = null)
     {
-        if($this->_gotAllLists && $this->_listsByHandle !== null)
-        {
+        if ($this->_gotAllLists && $this->_listsByHandle !== null) {
             return $this->_listsByHandle;
         }
 
@@ -36,8 +33,7 @@ class Lists extends Component
             ->all();
 
         $lists = [];
-        foreach ($subscriptions as $subscription)
-        {
+        foreach ($subscriptions as $subscription) {
             $lists[$subscription->list] = $this->_createListFromSubscription($subscription);
         }
         $this->_gotAllLists = true;
@@ -46,8 +42,7 @@ class Lists extends Component
 
     public function getListByHandle(string $handle, int $siteId = null)
     {
-        if(isset($this->_listsByHandle[$handle]) || $this->_gotAllLists)
-        {
+        if (isset($this->_listsByHandle[$handle]) || $this->_gotAllLists) {
             return $this->_listsByHandle[$handle] ?? false;
         }
 
@@ -63,7 +58,7 @@ class Lists extends Component
     {
         return (bool)SubscriptionRecord::deleteAll([
             'list' => $handle,
-            'siteId' => $siteId ?? Craft::$app->getSites()->getCurrentSite()->id
+            'siteId' => $siteId ?? Craft::$app->getSites()->getCurrentSite()->id,
         ]);
     }
 
@@ -74,8 +69,7 @@ class Lists extends Component
     {
         return new ListModel([
             'handle' => $subscription->list,
-            'elementType' => $subscription->getElementType() ?? false
+            'elementType' => $subscription->getElementType() ?? false,
         ]);
     }
-
 }

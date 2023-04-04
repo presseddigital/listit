@@ -1,10 +1,8 @@
 <?php
+
 namespace presseddigital\listit\models;
 
-use presseddigital\listit\services\Lists;
-
 use craft\base\Model;
-use craft\elements\User;
 
 class Settings extends Model
 {
@@ -12,14 +10,14 @@ class Settings extends Model
     // =========================================================================
 
     public $pluginNameOverride = 'Listit';
-	public $hasCpSectionOverride = false;
+    public $hasCpSectionOverride = false;
 
-	public $lists = [];
+    public $lists = [];
 
     // Public Methods
     // =========================================================================
 
-	public function rules(): array
+    public function rules(): array
     {
         return [
             ['pluginNameOverride', 'string'],
@@ -32,19 +30,17 @@ class Settings extends Model
 
     public function setLists($lists)
     {
-    	return $lists;
+        return $lists;
     }
 
     public function getLists()
     {
-    	return [
-    		[
-    			'name' => 'Maybes',
-    			'handle' => 'maybes',
-    			'elementType' => 'sadfasdfasdf',
-    		]
-    	];
-
+        return [
+            [
+                'name' => 'Maybes',
+                'handle' => 'maybes',
+                'elementType' => 'sadfasdfasdf',
+            ],
+        ];
     }
-
 }

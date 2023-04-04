@@ -1,4 +1,5 @@
 <?php
+
 namespace presseddigital\listit\events;
 
 use yii\base\Event;

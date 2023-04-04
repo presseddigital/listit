@@ -1,5 +1,11 @@
 # Listit Changelog
 
+## 3.0.3 - 2023-04-04
+
+### Changed
+- PHPStan Level 5
+- ECS Craft Updates
+
 ## 3.0.1 - 2023-03-27
 
 ### Changed

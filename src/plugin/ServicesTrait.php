@@ -1,7 +1,6 @@
 <?php
-namespace presseddigital\listit\plugin;
 
-use Craft;
+namespace presseddigital\listit\plugin;
 
 trait ServicesTrait
 {

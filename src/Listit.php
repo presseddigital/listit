@@ -1,19 +1,20 @@
 <?php
+
 namespace presseddigital\listit;
 
+use Craft;
+use craft\base\Plugin;
+use craft\events\PluginEvent;
+use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\UrlHelper;
+
+use craft\services\UserPermissions;
+use craft\web\twig\variables\CraftVariable;
 use presseddigital\listit\models\Settings;
 use presseddigital\listit\plugin\RoutesTrait;
 use presseddigital\listit\plugin\ServicesTrait;
 use presseddigital\listit\web\twig\CraftVariableBehavior;
 use presseddigital\listit\web\twig\Extension;
-
-use Craft;
-use craft\base\Plugin;
-use craft\web\twig\variables\CraftVariable;
-use craft\events\PluginEvent;
-use craft\events\RegisterUserPermissionsEvent;
-use craft\services\UserPermissions;
-use craft\helpers\UrlHelper;
 use yii\base\Event;
 
 class Listit extends Plugin
@@ -93,13 +94,12 @@ class Listit extends Plugin
 
         self::$view->registerTwigExtension(new Extension());
 
-        self::info(self::t('{name} plugin loaded', ['name' => $this->name] ), __METHOD__);
+        self::info(self::t('{name} plugin loaded', ['name' => $this->name]), __METHOD__);
     }
 
     public function afterInstallPlugin(PluginEvent $event)
     {
-        if ($event->plugin === self::$plugin && Craft::$app->getRequest()->isCpRequest)
-        {
+        if ($event->plugin === self::$plugin && Craft::$app->getRequest()->isCpRequest) {
             Craft::$app->controller->redirect(UrlHelper::cpUrl('listit/about'))->send();
         }
     }
@@ -120,5 +120,4 @@ class Listit extends Plugin
 
     // Private Methods
     // =========================================================================
-
 }

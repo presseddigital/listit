@@ -1,15 +1,16 @@
 <?php
+
 namespace presseddigital\listit\models;
 
-use presseddigital\listit\Listit;
-use presseddigital\listit\db\SubscriptionQuery;
-
 use Craft;
-use craft\base\Model;
 use craft\base\ElementInterface;
+
+use craft\base\Model;
 use craft\elements\User;
 use craft\helpers\App;
 use craft\helpers\Json;
+use presseddigital\listit\db\SubscriptionQuery;
+use presseddigital\listit\Listit;
 
 class Subscription extends Model
 {
@@ -59,8 +60,7 @@ class Subscription extends Model
     {
         parent::init();
 
-        if ($this->siteId === null)
-        {
+        if ($this->siteId === null) {
             $this->siteId = Craft::$app->getSites()->getPrimarySite()->id;
         }
     }
@@ -74,28 +74,27 @@ class Subscription extends Model
 
     public function validateElement()
     {
-        if(!$this->list) return;
+        if (!$this->list) {
+            return;
+        }
 
         $list = Listit::$plugin->getLists()->getListByHandle($this->list);
-        if(!$list) return;
+        if (!$list) {
+            return;
+        }
 
-        if($list->getElementType())
-        {
+        if ($list->getElementType()) {
             // Element must exist and match supplied type
             $element = Craft::$app->getElements()->getElementById($this->elementId, $list->getElementType());
-            if(!$element)
-            {
+            if (!$element) {
                 $this->addError('elementId', Listit::t('Please supply a valid {element}', [
-                    'element' => strtolower($list->getElementTypeLabel())
+                    'element' => strtolower($list->getElementTypeLabel()),
                 ]));
                 return;
             }
-        }
-        else
-        {
+        } else {
             // Element must not exist
-            if($this->elementId)
-            {
+            if ($this->elementId) {
                 $this->addError('elementId', Listit::t('You cannot use an element with this list'));
             }
         }
@@ -118,14 +117,12 @@ class Subscription extends Model
 
     public function getElementType()
     {
-        if($this->_elementType !== null)
-        {
+        if ($this->_elementType !== null) {
             return $this->_elementType;
         }
 
         $element = $this->getElement();
-        if(!$element)
-        {
+        if (!$element) {
             return $this->_elementType = false;
         }
 
@@ -139,8 +136,7 @@ class Subscription extends Model
 
     public function beforeValidate()
     {
-        if (!$this->subscriberId)
-        {
+        if (!$this->subscriberId) {
             $this->subscriberId = Craft::$app->getUser()->getId();
         }
 
@@ -154,8 +150,7 @@ class Subscription extends Model
 
     public function getSubscriber()
     {
-        if($this->_subscriber !== null)
-        {
+        if ($this->_subscriber !== null) {
             return $this->_subscriber;
         }
         return $this->_subscriber = Craft::$app->getUsers()->getUserById((int)$this->subscriberId);
@@ -168,13 +163,11 @@ class Subscription extends Model
 
     public function getElement()
     {
-        if($this->_element !== null)
-        {
+        if ($this->_element !== null) {
             return $this->_element;
         }
 
-        if($this->elementId)
-        {
+        if ($this->elementId) {
             return $this->_element = Craft::$app->getElements()->getElementById((int)$this->elementId);
         }
 
