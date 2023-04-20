@@ -79,15 +79,18 @@ class Listit extends Plugin
         });
 
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
-            $event->permissions['Listit'] = [
-                'listit:editOtherUsersSubscriptions' => [
-                    'label' => self::t('Edit other users subcriptions'),
-                ],
-                'listit:deleteOtherUsersSubscriptions' => [
-                    'label' => self::t('Delete other users subcriptions'),
-                ],
-                'listit:deleteLists' => [
-                    'label' => self::t('Delete lists'),
+            $event->permissions[] = [
+                'heading' => 'Listit',
+                'permissions' => [
+                    'listit:editOtherUsersSubscriptions' => [
+                        'label' => self::t('Edit other users subcriptions'),
+                    ],
+                    'listit:deleteOtherUsersSubscriptions' => [
+                        'label' => self::t('Delete other users subcriptions'),
+                    ],
+                    'listit:deleteLists' => [
+                        'label' => self::t('Delete lists'),
+                    ],
                 ],
             ];
         });
