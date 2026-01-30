@@ -1,5 +1,10 @@
 # Listit Changelog
 
+## 5.0.0 - 2026-01-30
+
+### Added
+- Version bump for Craft 5
+
 ## 4.0.0 - 2023-04-04
 
 ### Added
