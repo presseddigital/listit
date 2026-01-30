@@ -2,7 +2,7 @@
     "name": "presseddigital/listit",
     "description": "Follow, Favourite, Bookmark, Like & Subscribe.",
     "type": "craft-plugin",
-    "version": "4.0.1",
+    "version": "5.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -17,7 +17,7 @@
         "lists"
     ],
     "support": {
-        "docs": "https://github.com/presseddigital/listit/blob/master/README.md",
+        "docs": "https://github.com/presseddigital/listit/blob/v5/README.md",
         "issues": "https://github.com/presseddigital/listit/issues"
     },
     "license": "MIT",
@@ -28,8 +28,8 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^4.0",
-        "php": "^8.0.2"
+        "craftcms/cms": "^5.0",
+        "php": "^8.2"
     },
     "autoload": {
         "psr-4": {
@@ -41,7 +41,7 @@
         "handle": "listit",
         "hasCpSettings": true,
         "hasCpSection": true,
-        "changelogUrl": "https://raw.githubusercontent.com/presseddigital/listit/master/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/presseddigital/listit/v5/CHANGELOG.md",
         "components": {
             "lists": "presseddigital\\listit\\services\\Lists",
             "subscriptions": "presseddigital\\listit\\services\\Subscriptions"
